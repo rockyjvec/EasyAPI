@@ -77,9 +77,9 @@ void Main()
 public abstract class EasyAPI    
 {  
     private long start; // Time at start of program  
-    private long clock; // Current time in nanoseconds  
-    private long delta; // Time since last tick in nanoseconds  
-    private long ticks; // Number of ticks run of program  
+    private long clock; // Current time in ticks  
+    private long delta; // Time since last call to Tick in ticks
+    private long ticks; // Number of times the Tick function has run 
     
     public EasyBlock Self; // Reference to the Programmable Block that is running this script
     
@@ -92,13 +92,14 @@ public abstract class EasyAPI
     /*** Cache ***/   
     public EasyBlocks Blocks;   
    
-    /*** Constants ***/   
-    public const long Nanoseconds = 100;  
-    public const long Milliseconds = 10000;  
-    public const long Seconds = 10000000;   
-    public const long Minutes = 600000000;   
-    public const long Hours = 36000000000;   
-    public const long Days = 864000000000;   
+    /*** Constants ***/
+    public const long Microseconds = 10; // Ticks (100ns)
+    public const long Milliseconds = 1000 * Microseconds;
+    public const long Seconds =   1000 * Milliseconds;
+    public const long Minutes = 60 * Seconds;
+    public const long Hours = 60 * Minutes;
+    public const long Days = 24 * Hours;
+    public const long Years = 365 * Days;
     
     /*** Constructor ***/   
     public EasyAPI(IMyGridTerminalSystem grid)   
