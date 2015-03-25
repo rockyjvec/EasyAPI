@@ -1338,4 +1338,31 @@ static public bool EasyCompare(String op, String a, String b)
     return false;   
 }
 
+/*** Utilities ***/
 
+public class EasyUtils {
+    public static void Log(string logMessage)
+    {
+        String output = "\n";
+        output += logMessage;
+        throw new Exception(output);
+    }
+    
+    //because "System.array does not contain a definition for .Max()"
+    public static double Max(double[] values) {
+        double runningMax = values[0];
+        for(int i=1; i<values.Length; i++) {
+            runningMax = Math.Max(runningMax, values[i]);
+        }
+        return runningMax;
+    }
+    
+    //because "System.array does not contain a definition for .Min()"
+    public static double Min(double[] values) {
+        double runningMin = values[0];
+        for(int i=1; i<values.Length; i++) {
+            runningMin = Math.Min(runningMin, values[i]);
+        }
+        return runningMin;
+    }
+}
