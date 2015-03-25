@@ -1,58 +1,15 @@
-/************************************************************************************************************
-The example code below plots a map of all your ship's blocks on an LCD called "BigLCD"
+/************************************************************************************
+EasyAPI - Documentation: http://steamcommunity.com/sharedfiles/filedetails/?id=381043
+*************************************************************************************/
 
-To run the example code:
-
-You will need the following on your Ship/Station for the example code to work properly:
-1. An LCD Block (the wide one works best) named "BigLCD"
-2. A bunch of sensors around your ship to test with
-3. A timer block set up to: 
-        1. run this script
-        2. trigger itself
-4. Run the timer block
-
-To make your own script, edit the Example class below where it says START HERE.
-************************************************************************************************************/
-
-
-/*** START HERE ***/
 public class Example : EasyAPI  
-{  
-    EasyLCD lcd;
-    EasyBlocks sensors;
-    int blinker;
-    
-    public void tick()
-    {
-        lcd.clear();
-
-        //Refresh(); // keep reloading the blocks to get updates, slower
-        lcd.plot(Blocks, 0.5, 0.5, 1.0, 'o', false);
-        
-        blinker++;
-        if(this.blinker % 2 == 0)
-        {
-          lcd.plot(sensors.SensorsActive(), 0.5, 0.5, 1.0, ' ', false); 
-        }
-        else
-        {
-          lcd.plot(sensors.SensorsActive(), 0.5, 0.5, 1.0, 's', false);             
-        }
-        
-        lcd.update();
-    }
-    
-    /*** Constructor ***/ 
-    // This is where your starting code goes.  You can setup events here that call functions above.
+{    
     public Example(IMyGridTerminalSystem grid) : base(grid) 
-    { 
-        blinker = 0;
-        this.lcd = new EasyLCD(Blocks.Named("BigLCD"));
-        this.sensors = Blocks.OfType("Sensor");
-
-        Every(200 * Milliseconds, tick);
-    }  
+    {
+        // Start your code here
+    }
 }
+
 
 /*********************************************/
 /*** Advanced users only beyond this point ***/
@@ -67,7 +24,8 @@ void Main()
         state = new Example(GridTerminalSystem); 
     } 
     
-    state.Tick(100 * EasyAPI.Milliseconds);  // Only tick every 100 milliseconds to prevent lag
+    // Set the minimum time between ticks here to prevent lag
+    state.Tick(100 * EasyAPI.Milliseconds);
 }  
 
 
@@ -76,19 +34,20 @@ void Main()
 /**************************************************/   
 public abstract class EasyAPI    
 {  
-    private long start; // Time at start of program  
-    private long clock; // Current time in ticks  
-    private long delta; // Time since last call to Tick in ticks
-    private long ticks; // Number of times the Tick function has run 
+    private long start = 0; // Time at start of program  
+    private long clock = 0; // Current time in ticks  
+    private long delta = 0; // Time since last call to Tick in ticks
     
     public EasyBlock Self; // Reference to the Programmable Block that is running this script
     
     private IMyGridTerminalSystem GridTerminalSystem;  
     static public IMyGridTerminalSystem grid;  
        
+    /*** Events ***/
     private List<EasyInterval> Schedule;   
     private List<EasyInterval> Intervals;   
-   
+    private List<IEasyEvent> Events;
+
     /*** Cache ***/   
     public EasyBlocks Blocks;   
    
@@ -104,11 +63,11 @@ public abstract class EasyAPI
     /*** Constructor ***/   
     public EasyAPI(IMyGridTerminalSystem grid)   
     {  
-        this.ticks = 0;  
         this.clock = this.start = DateTime.Now.Ticks;  
         this.delta = 0;  
         
         this.GridTerminalSystem = EasyAPI.grid = grid;   
+        this.Events = new List<IEasyEvent>();
         this.Schedule = new List<EasyInterval>();  
         this.Intervals = new List<EasyInterval>();   
         
@@ -117,6 +76,22 @@ public abstract class EasyAPI
 
         this.Reset();
     }
+
+    private void handleEvents()
+    {
+        for(int n = 0; n < Events.Count; n++)
+        {
+            if(!Events[n].handle())
+            {
+                Events.Remove(Events[n]);
+            }
+        }
+    }
+
+    public void AddEvent(IEasyEvent e)
+    {
+        Events.Add(e);
+    }   
     
     // Get current running Programmable Block (Thanks to LordDevious and LukeStrike for finding out to do this)
     public EasyBlock GetThis()
@@ -173,12 +148,13 @@ public abstract class EasyAPI
     {  
         if(DateTime.Now.Ticks - this.clock < interval) return; // Don't run until the minimum time between ticks  
           
-        this.ticks ++;  
-  
         long lastClock = this.clock;  
         this.clock = DateTime.Now.Ticks;                          
         this.delta = this.clock - lastClock;  
           
+        /*** Handle Events ***/
+        handleEvents();
+        
         /*** Handle Intervals ***/   
         for(int n = 0; n < this.Intervals.Count; n++)  
         {  
@@ -202,10 +178,9 @@ public abstract class EasyAPI
         }  
     }  
       
-    public long GetDelta()  
-    {  
-        return this.delta;  
-    }  
+    public long GetDelta() {return this.delta;}
+    
+    public long GetClock() {return clock;}    
     
     /*** Call a function at the specified time ***/   
     public void At(long time, Action callback)   
@@ -288,7 +263,7 @@ public class EasyBlocks
       
     public EasyBlocks OfType(String Type)   
     {   
-        return TypeFilter("=", Type);   
+        return TypeFilter("==", Type);   
     }   
    
     public EasyBlocks NotOfType(String Type)   
@@ -335,7 +310,7 @@ public class EasyBlocks
    
     public EasyBlocks Named(String Name)   
     {   
-        return NameFilter("=", Name);  
+        return NameFilter("==", Name);  
     }   
        
     public EasyBlocks NotNamed(String Name)   
@@ -382,7 +357,7 @@ public class EasyBlocks
       
     public EasyBlocks InGroupsNamed(String Group)   
     {   
-        return GroupFilter("=", Group);  
+        return GroupFilter("==", Group);  
     }   
        
     public EasyBlocks InGroupsNotNamed(String Group)   
@@ -683,6 +658,18 @@ public struct EasyBlock
     {  
         return this.Block.DefinitionDisplayNameText;   
     }  
+  
+    public bool Open()
+    {
+        IMyDoor door = Block as IMyDoor;
+        
+        if(door != null)
+        {
+            return door.Open;
+        }
+        
+        return false;
+    }
   
     public String Name()   
     {   
@@ -1290,13 +1277,47 @@ public struct EasyMessage
     } 
 }
   
-/*** Comparisons ****/  
+/*** Events ***/
+
+abstract public class IEasyEvent
+{
+    public abstract bool handle();
+}
+
+public class EasyEvent<C> : IEasyEvent 
+    where C: struct
+{   
+    Func<C,bool> op; // The comparison function 
+    
+    private object obj; // Object to pass through to the callback when the event is triggered
+    
+    private Func<C,bool> callback; // What to call when the event occurs
+    
+    public EasyEvent(C obj, Func<C,bool> op, Func<C,bool> callback)
+    {
+        this.op = op;
+        this.callback = callback;
+        this.obj = obj;
+    }
+
+    public override bool handle()
+    {
+        if(op((C)obj))
+        {
+            return callback((C)obj);
+        }
+        
+        return true;
+    }
+}
   
+/*** Comparisons ****/  
+
 static public bool EasyCompare(String op, String a, String b)  
 {  
     switch(op)  
     {  
-        case "=":  
+        case "==":  
             return (a == b);  
         case "!=":  
             return (a != b);  
