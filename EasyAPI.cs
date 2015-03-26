@@ -261,7 +261,7 @@ public class EasyBlocks
       
     /*** Interface Filters ***/
     
-    public EasyBlocks WithInterface<T>()
+    public EasyBlocks WithInterface<T>() where T: class
     {
         List<EasyBlock> FilteredList = new List<EasyBlock>();   
    
