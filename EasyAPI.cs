@@ -259,8 +259,27 @@ public class EasyBlocks
     /*** Block Filters ***/       
     /*********************/  
       
+    /*** Interface Filters ***/
+    
+    public EasyBlocks WithInterface<T>()
+    {
+        List<EasyBlock> FilteredList = new List<EasyBlock>();   
+   
+        for(int i = 0; i < this.Blocks.Count; i++)   
+        {   
+            T block = this.Blocks[i].Block as T;
+            
+            if(block != null)  
+            {   
+                FilteredList.Add(this.Blocks[i]);   
+            }   
+        }   
+           
+        return new EasyBlocks(FilteredList);            
+    }
+    
     /*** Type Filters ***/  
-      
+    
     public EasyBlocks OfType(String Type)   
     {   
         return TypeFilter("==", Type);   
