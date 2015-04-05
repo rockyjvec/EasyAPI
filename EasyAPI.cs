@@ -495,32 +495,26 @@ public class EasyBlocks
     {  
         List<EasyBlock> FilteredList = new List<EasyBlock>();  
           
-        FilteredList.AddRange(this.Blocks);  
-        FilteredList.AddRange(Blocks.Blocks);  
+        FilteredList.AddRange(this.Blocks);
+        for(int i = 0; i < this.Blocks.Count; i++)  
+        {  
+            if(!FilteredList.Contains(Blocks.Blocks[i]))
+            {
+                FilteredList.Add(Blocks.Blocks[i]);
+            }
+        }          
           
-        return new EasyBlocks(FilteredList);   
+        return new EasyBlocks(FilteredList);
     }  
   
     public EasyBlocks Minus(EasyBlocks Blocks)  
     {  
         List<EasyBlock> FilteredList = new List<EasyBlock>();  
-          
-        for(int i = 0; i < this.Blocks.Count; i++)  
+        
+        FilteredList.AddRange(this.Blocks);
+        for(int i = 0; i < Blocks.Blocks.Count; i++)  
         {  
-            bool found = false;  
-            for(int j = 0; j < Blocks.Blocks.Count; j++)  
-            {  
-                if(this.Blocks[i].Block == Blocks.Blocks[j].Block)  
-                {  
-                    found = true;  
-                    break;   
-                }   
-            }  
-              
-            if(!found)  
-            {  
-                FilteredList.Add(this.Blocks[i]);   
-            }   
+            FilteredList.Remove(Blocks.Blocks[i]);
         }  
           
         return new EasyBlocks(FilteredList);           
@@ -890,9 +884,9 @@ public struct EasyBlock
     public static bool operator !=(EasyBlock a, EasyBlock b)  
     {  
         return a.Block != b.Block;
-    }  
-}  
-  
+    }   
+}
+
 // Stores all items in matched block inventories for later filtering  
 public class EasyInventory  
 {  
