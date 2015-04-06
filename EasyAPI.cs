@@ -93,6 +93,14 @@ public abstract class EasyAPI
         Events.Add(e);
     }
 
+    public void AddEvents(EasyBlocks blocks, Func<EasyBlock, bool> evnt, Func<EasyBlock, bool> action)
+    {
+        for(int i = 0; i < blocks.Count(); i++)
+        {
+            this.AddEvent(new EasyEvent<EasyBlock>(blocks.GetBlock(i), evnt, action));
+        }        
+    }
+    
     // Get current running Programmable Block (Thanks to LordDevious and LukeStrike for finding out to do this)
     public EasyBlock GetThis()
     {
