@@ -2,7 +2,8 @@ public class Example : EasyAPI
 {
     public bool damaged1Percent(EasyBlock b)
     {
-        var parameters = b.NameParameters('[', ']'); // Get parameters from the name (separated by '[' and ']')
+        // Get parameters from the name (separated by '[' and ']')
+        var parameters = b.NameParameters('[', ']'); 
 
         // Close doors specified in parameters
         for(int i = 0; i < parameters.Count; i++)
@@ -19,12 +20,13 @@ public class Example : EasyAPI
             notDamaged1Percent
         );
 
-        return false; // Remove the event once it is triggered. Otherwise it will continue to be called until the Damage goes back to below 1%.
+        return false; // Remove the event once it is triggered
     }
 
     public bool notDamaged1Percent(EasyBlock b)
     {
-        var parameters = b.NameParameters('[', ']'); // Get parameters from the name (separated by '[' and ']')
+        // Get parameters from the name (separated by '[' and ']')
+        var parameters = b.NameParameters('[', ']'); 
 
         // Open doors specified in parameters
         for(int i = 0; i < parameters.Count; i++)
@@ -41,12 +43,13 @@ public class Example : EasyAPI
             damaged1Percent
         );
 
-        return false; // Remove the event once it is triggered. Otherwise it will continue to be called until the Damage goes back to above 1%.
+        return false; // Remove the event once it is triggered.
     }
 
     public Example(IMyGridTerminalSystem grid) : base(grid)
     {
-        EasyBlocks monitoredBlocks = Blocks; // Add this event to each of these blocks (All by default.  Add filters here if you want to only monitor some blocks)
+        EasyBlocks monitoredBlocks = Blocks; // The event will be added to all these blocks
+        
         AddEvents(
             monitoredBlocks,
             delegate(EasyBlock block) { // When this function returns true, the event is triggered
