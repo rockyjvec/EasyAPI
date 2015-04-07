@@ -72,7 +72,7 @@ public abstract class EasyAPI
         this.Intervals = new List<EasyInterval>();
 
         // Get the Programmable Block that is running this script (thanks to LordDevious and LukeStrike)
-        this.Self = this.GetThis();
+        this.Self = this.GetSelf();
 
         this.Reset();
     }
@@ -107,7 +107,7 @@ public abstract class EasyAPI
     }
 
     // Get current running Programmable Block (Thanks to LordDevious and LukeStrike for finding out to do this)
-    public EasyBlock GetThis()
+    public EasyBlock GetSelf()
     {
         var blocks = new List<IMyTerminalBlock>();
         GridTerminalSystem.GetBlocksOfType<IMyProgrammableBlock>(blocks, delegate(IMyTerminalBlock block) {
@@ -528,11 +528,11 @@ public class EasyBlocks
         List<EasyBlock> FilteredList = new List<EasyBlock>();
 
         FilteredList.AddRange(this.Blocks);
-        for(int i = 0; i < this.Blocks.Count; i++)
+        for(int i = 0; i < Blocks.Count(); i++)
         {
-            if(!FilteredList.Contains(Blocks.Blocks[i]))
+            if(!FilteredList.Contains(Blocks.GetBlock(i)))
             {
-                FilteredList.Add(Blocks.Blocks[i]);
+                FilteredList.Add(Blocks.GetBlock(i));
             }
         }
 
@@ -544,9 +544,9 @@ public class EasyBlocks
         List<EasyBlock> FilteredList = new List<EasyBlock>();
 
         FilteredList.AddRange(this.Blocks);
-        for(int i = 0; i < Blocks.Blocks.Count; i++)
+        for(int i = 0; i < Blocks.Count(); i++)
         {
-            FilteredList.Remove(Blocks.Blocks[i]);
+            FilteredList.Remove(Blocks.GetBlock(i));
         }
 
         return new EasyBlocks(FilteredList);
