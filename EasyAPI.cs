@@ -564,6 +564,13 @@ public class EasyBlocks
  
     /*** Operations ***/ 
  
+    public EasyBlocks FindOrFail(string message)
+    {
+        if(this.Count() == 0) throw new Exception(message);
+        
+        return this;
+    }
+
     public EasyBlocks SendMessage(EasyMessage message) 
     { 
         for(int i = 0; i < this.Blocks.Count; i++) 
