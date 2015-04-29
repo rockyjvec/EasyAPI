@@ -24,7 +24,9 @@ void Main()
         state = new Example(GridTerminalSystem); 
     } 
  
-    // Set the minimum time between ticks here to prevent lag 
+    // Set the minimum time between ticks here to prevent lag. 
+    // To utilise onSingleTap and onDoubleTap, set the minimum time to the same
+    // time period of the timer running this script (e.g. 1 * EasyAPI.Seconds).   
     state.Tick(100 * EasyAPI.Milliseconds); 
 } 
  
@@ -47,6 +49,14 @@ public abstract class EasyAPI
     private List<EasyInterval> Schedule; 
     private List<EasyInterval> Intervals; 
     private List<IEasyEvent> Events; 
+    
+    /*** Overridable lifecycle methods ***/     
+    public virtual void onRunThrottled(float intervalTranspiredPercentage) {}     
+    public virtual void onTickStart() {}      
+    public virtual void onTickComplete() {}      
+    public virtual bool onSingleTap() { return false; }      
+    public virtual bool onDoubleTap() { return false; }     
+    private int InterTickRunCount = 0;
  
     /*** Cache ***/ 
     public EasyBlocks Blocks; 
@@ -113,8 +123,7 @@ public abstract class EasyAPI
         GridTerminalSystem.GetBlocksOfType<IMyProgrammableBlock>(blocks, delegate(IMyTerminalBlock block) { 
            return (block as IMyProgrammableBlock).IsRunning; 
         }); 
-        if(blocks.Count > 1) 
-            throw new Exception("More than one Programmable Block is running!"); 
+        if(blocks.Count > 1) {throw new Exception("More than one Programmable Block is running!");}
         return new EasyBlock((IMyTerminalBlock)blocks[0]); 
     } 
  
@@ -159,11 +168,28 @@ public abstract class EasyAPI
     /*** Execute one tick of the program (interval is the minimum time between ticks) ***/ 
     public void Tick(long interval = 0) 
     { 
-        if(DateTime.Now.Ticks - this.clock < interval) return; // Don't run until the minimum time between ticks 
- 
-        long lastClock = this.clock; 
-        this.clock = DateTime.Now.Ticks; 
-        this.delta = this.clock - lastClock; 
+        long now = DateTime.Now.Ticks;    
+        if(this.clock > this.start && now - this.clock < interval) {     
+            InterTickRunCount++;     
+            float transpiredPercentage = ((float)((double)(now - this.clock) / interval));    
+            onRunThrottled(transpiredPercentage);    
+            return; // Don't run until the minimum time between ticks       
+        }
+        if(InterTickRunCount == 1) { 
+            if(onSingleTap()) {
+                return; // Override has postponed this Tick to next Run
+            }
+        } else if(InterTickRunCount > 1) {
+            if(onDoubleTap()) {
+                return; // Override has postponed this Tick to next Run
+            }
+        }
+        InterTickRunCount = 0;     
+        onTickStart();     
+               
+        long lastClock = this.clock;       
+        this.clock = now;                               
+        this.delta = this.clock - lastClock;   
  
         /*** Handle Events ***/ 
         handleEvents(); 
@@ -189,6 +215,8 @@ public abstract class EasyAPI
                 Schedule.Remove(this.Schedule[n]); 
             } 
         } 
+        
+        onTickComplete();
     } 
  
     public long GetDelta() {return this.delta;} 
