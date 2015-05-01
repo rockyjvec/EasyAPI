@@ -8,13 +8,9 @@ public class EasyMenu
     private EasyMenuItem selectedItem; // The selected menu item (child)
     Stack<EasyMenuItem> path;
     
-    // these will be used in the future to scroll the menu if it doesn't fit on the display width/height
-    private int textWidth;
-    private int textHeight;
-    
     /*** Constructors ***/
     
-    public EasyMenu(string text, EasyMenuItem[] children = null, int textWidth = 70, int textHeight = 40)
+    public EasyMenu(string text, EasyMenuItem[] children = null)
     {
         this.path = new Stack<EasyMenuItem>();
         
@@ -75,7 +71,7 @@ public class EasyMenu
     }
     
     // Return string of rendered menu
-    public string Draw()
+    public string Draw(int textWidth = 40, int textHeight = 7)
     {
         // long clock = DateTime.Now.Ticks; // used to scroll menu text if it is too wide
         string output = "";
@@ -96,23 +92,25 @@ public class EasyMenu
         int length = currentItem.children.Count;
         
         
-        if(selected > (this.textHeight - 2) / 2)
+        if(selected > (textHeight - 2) / 2)
         {
-            start = selected - (this.textHeight - 2) / 2;
+            start = selected - (textHeight - 2) / 2;
         }
 
-        if(length > this.textHeight - 2)
+        if(length > textHeight - 2)
         {
-            length = this.textHeight - 2;
+            length = textHeight - 2;
         }
-        
+               
         if(start + length > currentItem.children.Count)
         {
-            start = currentItem.children.Count - (this.textHeight - 2);
-            length = this.textHeight - 2;
+            start = currentItem.children.Count - (textHeight - 2);
+            length = textHeight - 2;
         }
+
+        if(start < 0) start = 0;
         
-        for(int n = start; n < start + length && n < currentItem.children.Count; n++)
+        for(int n = start; (n < (start + length) && n < currentItem.children.Count); n++)
         {
             EasyMenuItem child = currentItem.children[n];
             if(child == this.selectedItem)
