@@ -80,16 +80,41 @@ public class EasyMenu
         // long clock = DateTime.Now.Ticks; // used to scroll menu text if it is too wide
         string output = "";
         
-        if(this.path.Peek() == null)
+        var currentItem = this.path.Peek();
+        
+        if(currentItem == null)
         {
             throw new Exception("Menu: currentItem is null");
         }
             
         output += this.breadcrumbs() + "\n\n";
         
-        for(int n = 0; n < this.path.Peek().children.Count; n++)
+        
+        int selected = currentItem.children.IndexOf(this.selectedItem);
+        
+        int start = 0;
+        int length = currentItem.children.Count;
+        
+        
+        if(selected > (this.textHeight - 2) / 2)
         {
-            EasyMenuItem child = this.path.Peek().children[n];
+            start = selected - (this.textHeight - 2) / 2;
+        }
+
+        if(length > this.textHeight - 2)
+        {
+            length = this.textHeight - 2;
+        }
+        
+        if(start + length > currentItem.children.Count)
+        {
+            start = currentItem.children.Count - (this.textHeight - 2);
+            length = this.textHeight - 2;
+        }
+        
+        for(int n = start; n < start + length && n < currentItem.children.Count; n++)
+        {
+            EasyMenuItem child = currentItem.children[n];
             if(child == this.selectedItem)
             {
                 // Todo, if text is too wide, have it scroll horizontally 
