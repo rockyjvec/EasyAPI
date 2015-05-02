@@ -237,7 +237,7 @@ public class EasyMenuItemClass
 }
 
 // This is to work around an issue in the PB where you can't use a user defined class in a List.  It basically just maps the public methods/properties onto the EasyMenuItemClass class
-public struct EasyMenuItem
+public struct EasyMenuItem : IComparable<EasyMenuItem>
 {
     /*** Private Properties ***/
     
@@ -270,4 +270,5 @@ public struct EasyMenuItem
     
     public static bool operator ==(EasyMenuItem x, EasyMenuItem y) {return x.uid == y.uid;}    
     public static bool operator !=(EasyMenuItem x, EasyMenuItem y) {return !(x == y);}    
+    public int CompareTo(EasyMenuItem otherItem) {return this.GetText().CompareTo(otherItem.GetText());}
 }
