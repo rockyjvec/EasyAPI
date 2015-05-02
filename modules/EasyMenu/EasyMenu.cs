@@ -150,16 +150,16 @@ public class EasyMenu
 }
 
 // Holds menu item info
-public struct EasyMenuItem
+public class EasyMenuItemClass
 {
     /*** Private Properties ***/
     
     private Func<EasyMenuItem, bool> chooseAction; // Function to run when item is chosen
     private Func<EasyMenuItem, string> textAction; // Function to update the text for dynamic menu text
-    public long uid; // Unique id of this item for comparisons 
 
     /*** Public Properties ***/
     
+    public long uid; // Unique id of this item for comparisons 
     public string Text; // The text that shows up in the menu for this item
     public List<EasyMenuItem> children; // The children items of this item
     
@@ -168,15 +168,15 @@ public struct EasyMenuItem
     /*** Constructors ***/
 
     // Standard constructor
-    public EasyMenuItem(string text, EasyMenuItem[] children = null, Func<EasyMenuItem, bool> chooseAction = null, Func<EasyMenuItem, string> textAction = null)
+    public EasyMenuItemClass(string text, EasyMenuItem[] children = null, Func<EasyMenuItem, bool> chooseAction = null, Func<EasyMenuItem, string> textAction = null)
     {
         // increment unique id
-        EasyMenuItem.currentUid++;
+        EasyMenuItemClass.currentUid++;
         
         this.Text = text;
         this.chooseAction = chooseAction;
         this.textAction = textAction;
-        this.uid = EasyMenuItem.currentUid;
+        this.uid = EasyMenuItemClass.currentUid;
 
         // Initialize children
         if(children == null)
@@ -194,18 +194,8 @@ public struct EasyMenuItem
             this.textAction = get_text;    
         }
     }
-
-    // Action constructor
-    public EasyMenuItem(string text, Func<EasyMenuItem, bool> chooseAction, Func<EasyMenuItem, string> textAction = null) : this(text, null, chooseAction, textAction)
-    {
-//        static(text, null, chooseAction, textAction);
-    }
     
-    // Dynamic text constructor
-    public EasyMenuItem(Func<EasyMenuItem, string> textAction, Func<EasyMenuItem, bool> chooseAction = null) : this("", chooseAction, textAction)
-    {
-//        static("", chooseAction, textAction);
-    }
+    /*** Methods ***/
 
     // Default text action which just returns the static text
     private string get_text(EasyMenuItem item)
@@ -214,13 +204,13 @@ public struct EasyMenuItem
     }
     
     // Get menu text
-    public string GetText()
+    public string GetText(EasyMenuItem item)
     {
-        return this.textAction(this);
+        return this.textAction(item);
     }
     
     // True means go into sub menu if it exists, false means stay where you are
-    public bool doAction()
+    public bool doAction(EasyMenuItem item)
     {
         if(this.chooseAction == null)
         {
@@ -228,7 +218,7 @@ public struct EasyMenuItem
         }
         else
         {
-            return this.chooseAction(this);
+            return this.chooseAction(item);
         }
     }
     
@@ -244,15 +234,40 @@ public struct EasyMenuItem
         this.textAction = textAction;
     }
 
-    /*** Operators ***/
+}
+
+// This is to work around an issue in the PB where you can't use a user defined class in a List.  It basically just maps the public methods/properties onto the EasyMenuItemClass class
+public struct EasyMenuItem
+{
+    /*** Private Properties ***/
     
-    public static bool operator ==(EasyMenuItem x, EasyMenuItem y) 
+    private EasyMenuItemClass item;
+    
+    /*** Public Properties ***/
+    
+    public long uid { get {return this.item.uid;} }
+    public string Text { get {return this.item.Text;} } // The text that shows up in the menu for this item
+    public List<EasyMenuItem> children { get {return this.item.children;} set {this.item.children = value;} } // The children items of this item
+
+    /*** Constructors ***/
+    
+    public EasyMenuItem(string text, EasyMenuItem[] children = null, Func<EasyMenuItem, bool> chooseAction = null, Func<EasyMenuItem, string> textAction = null)
     {
-       return x.uid == y.uid;
+        this.item = new EasyMenuItemClass(text, children, chooseAction, textAction);
     }
     
-    public static bool operator !=(EasyMenuItem x, EasyMenuItem y) 
-    {
-       return !(x == y);
-    }    
+    public EasyMenuItem(string text, Func<EasyMenuItem, bool> chooseAction, Func<EasyMenuItem, string> textAction = null) : this(text, null, chooseAction, textAction) {}
+    public EasyMenuItem(Func<EasyMenuItem, string> textAction, Func<EasyMenuItem, bool> chooseAction = null) : this("", chooseAction, textAction) {}
+    
+    /*** Methods ***/
+
+    public string GetText() {return this.item.GetText(this);}
+    public bool doAction() {return this.item.doAction(this);}
+    public void SetText(string text) {this.item.SetText(text);}
+    public void SetTextAction(Func<EasyMenuItem, string> textAction) {this.item.SetTextAction(textAction);}
+    
+    /*** Operators ***/
+    
+    public static bool operator ==(EasyMenuItem x, EasyMenuItem y) {return x.uid == y.uid;}    
+    public static bool operator !=(EasyMenuItem x, EasyMenuItem y) {return !(x == y);}    
 }
