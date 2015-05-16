@@ -5,8 +5,6 @@ public class Example : EasyAPI
     EasyLCD lcd;
     EasyMenu menu;    
 
-    EasyBlocks timer;
-    EasyBlocks screen;
     EasyBlocks speaker;
 
     public Example(IMyGridTerminalSystem grid, IMyProgrammableBlock me, Action<string> echo, TimeSpan elapsedTime) : base(grid, me, echo, elapsedTime) 
@@ -24,15 +22,39 @@ public class Example : EasyAPI
         });
         
         // Get blocks
-        this.timer = Blocks.Named("MenuTimer").FindOrFail("MenuTimer not found!");       
-        this.screen = Blocks.Named("MenuLCD").FindOrFail("MenuLCD not found!");
         this.speaker = Blocks.Named("MenuSpeaker").FindOrFail("MenuSpeaker not found!");
         
-        this.lcd = new EasyLCD(this.screen);
+        this.lcd = new EasyLCD(Blocks.Named("MenuLCD").FindOrFail("MenuLCD not found!"));
         
-        Every(100 * Milliseconds, doUpdates);
-    } 
+        
+        // Handle Commands
+        On("MenuUp", delegate() {
+            this.menu.Up();
+            doUpdates();           
+            doUpdates();           
+        });
 
+        On("MenuDown", delegate() {
+            this.menu.Down();
+            doUpdates();           
+            doUpdates();           
+        });
+
+        On("MenuChoose", delegate() {
+            this.menu.Choose();
+            doUpdates();           
+            doUpdates();           
+        });
+        
+        On("MenuBack", delegate() {
+            this.menu.Back();
+            doUpdates();           
+            doUpdates();           
+        });
+        
+        On("MenuRefresh", doUpdates);
+    } 
+    
     public bool toggleDoor(EasyMenuItem item)
     {
         EasyBlock door = Blocks.Named(item.Text).FindOrFail(item.Text + " not found!").GetBlock(0);
@@ -41,7 +63,7 @@ public class Example : EasyAPI
             door.ApplyAction("Open_Off");
         else
             door.ApplyAction("Open_On");
-        
+
         return false; // don't go to a sub-menu if one is available
     }
     
@@ -61,35 +83,9 @@ public class Example : EasyAPI
     
     public void doUpdates()
     {
-        Single slider = screen.GetProperty<Single>("ChangeIntervalSlider"); 
-
-        if(slider < 5) 
-        {
-            menu.Up();
-            screen.SetProperty<Single>("ChangeIntervalSlider", (Single)5);
-        }
-
-        if(slider > 5)
-        {
-            menu.Down();
-            screen.SetProperty<Single>("ChangeIntervalSlider", (Single)5);
-        }        
-
-        Single delay = timer.GetProperty<Single>("TriggerDelay");
-
-        if(delay > 5)  
-        { 
-            menu.Choose();
-            timer.SetProperty<Single>("TriggerDelay", (Single)5);
-        } 
-        if(delay < 5) 
-        { 
-            menu.Back();
-            timer.SetProperty<Single>("TriggerDelay", (Single)5);
-        } 
-        
         lcd.clear();
         lcd.update();
         lcd.SetText(menu.Draw());
+        Echo("Got here");
     }    
 }
