@@ -31,28 +31,22 @@ public class Example : EasyAPI
         On("MenuUp", delegate() {
             this.menu.Up();
             doUpdates();           
-            doUpdates();           
         });
 
         On("MenuDown", delegate() {
             this.menu.Down();
-            doUpdates();           
             doUpdates();           
         });
 
         On("MenuChoose", delegate() {
             this.menu.Choose();
             doUpdates();           
-            doUpdates();           
         });
         
         On("MenuBack", delegate() {
             this.menu.Back();
             doUpdates();           
-            doUpdates();           
         });
-        
-        On("MenuRefresh", doUpdates);
     } 
     
     public bool toggleDoor(EasyMenuItem item)
@@ -86,6 +80,5 @@ public class Example : EasyAPI
         lcd.clear();
         lcd.update();
         lcd.SetText(menu.Draw());
-        Echo("Got here");
     }    
 }
