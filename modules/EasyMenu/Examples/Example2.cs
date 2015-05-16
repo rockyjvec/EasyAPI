@@ -28,22 +28,22 @@ public class Example : EasyAPI
         
         
         // Handle Commands
-        On("MenuUp", delegate() {
+        On("Up", delegate() {
             this.menu.Up();
             doUpdates();           
         });
 
-        On("MenuDown", delegate() {
+        On("Down", delegate() {
             this.menu.Down();
             doUpdates();           
         });
 
-        On("MenuChoose", delegate() {
+        On("Choose", delegate() {
             this.menu.Choose();
             doUpdates();           
         });
         
-        On("MenuBack", delegate() {
+        On("Back", delegate() {
             this.menu.Back();
             doUpdates();           
         });
