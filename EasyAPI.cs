@@ -1472,9 +1472,10 @@ static public bool EasyCompare(String op, String a, String b)
 /*** Utilities ***/ 
  
 public class EasyUtils { 
-    public const int LOG_MAX_ECHO_LENGTH_CHARS = 80000; // Mirrored value from MyProgrammableBlock.cs
+    public const int LOG_MAX_ECHO_LENGTH_CHARS = 8000; // Mirrored value from MyProgrammableBlock.cs
+    public const int LOG_MAX_LCD_LENGTH_CHARS = 4200; // Mirrored value from MyTextPanel.cs
     public static StringBuilder LogBuffer;
-    public static void Log(string logMessage, Action<string> echo = null, IMyProgrammableBlock me = null, string label = null) 
+    public static void Log(string logMessage, Action<string> echo = null, IMyProgrammableBlock me = null, string label = null, IMyTextPanel mirrorLcd = null, bool truncateForLcd = true) 
     { 
         String output = "";
         if(echo == null) {
@@ -1488,28 +1489,43 @@ public class EasyUtils {
         if(label != null) {
             logMessage = label+": "+logMessage;
         }
-        if(LogBuffer.Length == 0) {
-            LogBuffer.Append(logMessage);
-            echo(LogBuffer.ToString());
-            return;
-        }
-        if(LogBuffer.Length > LOG_MAX_ECHO_LENGTH_CHARS) {
-            string[] lines = LogBuffer.ToString().Split('\n');
-            int runningCount = 0;
-            for(int i=0; i<lines.Length; i++) {
-                runningCount += lines[i].Length;
-                if(runningCount > logMessage.Length) {
-                    break;
-                }
+        if(mirrorLcd != null) {
+            string currentlyMirrored = mirrorLcd.GetPublicText();
+            if(truncateForLcd && LogBuffer.Length + logMessage.Length > LOG_MAX_LCD_LENGTH_CHARS) {
+                StringBuilder lcdBuffer = new StringBuilder(LogBuffer.ToString());
+                int charAmountToOffset = fullLineCharsExceeding(lcdBuffer, logMessage.Length, LogBuffer.Length - (LOG_MAX_LCD_LENGTH_CHARS - logMessage.Length));
+                lcdBuffer.Remove(0, LogBuffer.Length - LOG_MAX_LCD_LENGTH_CHARS + charAmountToOffset - 2);
+                lcdBuffer.AppendLine();
+                lcdBuffer.Append(logMessage);
+                mirrorLcd.WritePublicText(lcdBuffer.ToString(), false);
+            } else {
+                string potentialNewLine = (currentlyMirrored.Length > 0)? "\n" : "";
+                mirrorLcd.WritePublicText(potentialNewLine+logMessage, true);
             }
-            output.Substring(runningCount, output.Length - runningCount);
-            LogBuffer.Clear();
+        }
+        if(LogBuffer.Length + logMessage.Length * 2 > LOG_MAX_ECHO_LENGTH_CHARS) {
+            int charAmountToRemove = fullLineCharsExceeding(LogBuffer, logMessage.Length);
+            LogBuffer.Remove(0, charAmountToRemove);
             LogBuffer.Append(output);
         }
-        LogBuffer.AppendLine();
+        if(LogBuffer.Length > 0) {
+            LogBuffer.AppendLine();
+        }
         LogBuffer.Append(logMessage);
         echo(LogBuffer.ToString());
     } 
+    public static int fullLineCharsExceeding(StringBuilder sb, int maxLength, int offset = 0) {
+        int runningCount = 0;
+        for(int i=offset; i<sb.Length; i++) {
+            runningCount++;
+            if(sb[i] == '\n') {
+                if(runningCount > maxLength) {
+                    break;
+                }
+            }
+        }
+        return runningCount;
+    }
     public static void ClearLogBuffer() {
         LogBuffer.Clear();
     }
