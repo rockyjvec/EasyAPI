@@ -69,7 +69,7 @@ public class Example : EasyAPI
         lcd.SetText(menu.Draw());
     }
     
-    public Example(IMyGridTerminalSystem grid) : base(grid) 
+    public Example(IMyGridTerminalSystem grid, IMyProgrammableBlock me, Action<string> echo) : base(grid, me, echo) 
     {
         // Create menu
         this.menu = new EasyMenu("Test Menu", new [] {

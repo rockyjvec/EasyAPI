@@ -4,7 +4,7 @@ EasyAPI - Documentation: http://steamcommunity.com/sharedfiles/filedetails/?id=3
  
 public class Example : EasyAPI 
 { 
-    public Example(IMyGridTerminalSystem grid) : base(grid) 
+    public Example(IMyGridTerminalSystem grid, IMyProgrammableBlock me, Action<string> echo) : base(grid, me, echo) 
     { 
         // Start your code here 
     } 
@@ -17,17 +17,17 @@ public class Example : EasyAPI
  
 Example state; 
  
-void Main() 
+void Main(string argument) 
 { 
     if(state == null) 
     { 
-        state = new Example(GridTerminalSystem); 
+        state = new Example(GridTerminalSystem, Me, Echo); 
     } 
  
     // Set the minimum time between ticks here to prevent lag. 
     // To utilise onSingleTap and onDoubleTap, set the minimum time to the same
     // time period of the timer running this script (e.g. 1 * EasyAPI.Seconds).   
-    state.Tick(100 * EasyAPI.Milliseconds); 
+    state.Tick(100 * EasyAPI.Milliseconds, argument); 
 } 
  
  
@@ -42,10 +42,12 @@ public abstract class EasyAPI
  
     public EasyBlock Self; // Reference to the Programmable Block that is running this script 
  
-    private IMyGridTerminalSystem GridTerminalSystem; 
+    protected IMyGridTerminalSystem GridTerminalSystem; 
+    protected Action<string> Echo;
     static public IMyGridTerminalSystem grid; 
  
     /*** Events ***/ 
+    private Dictionary<string,List<Action>> ArgumentActions;
     private List<EasyInterval> Schedule; 
     private List<EasyInterval> Intervals; 
     private List<IEasyEvent> Events; 
@@ -71,18 +73,20 @@ public abstract class EasyAPI
     public const long Years = 365 * Days; 
  
     /*** Constructor ***/ 
-    public EasyAPI(IMyGridTerminalSystem grid) 
+    public EasyAPI(IMyGridTerminalSystem grid, IMyProgrammableBlock me, Action<string> echo) 
     { 
         this.clock = this.start = DateTime.Now.Ticks; 
         this.delta = 0; 
  
         this.GridTerminalSystem = EasyAPI.grid = grid; 
+        this.Echo = echo;
+        this.ArgumentActions = new Dictionary<string,List<Action>>();
         this.Events = new List<IEasyEvent>(); 
         this.Schedule = new List<EasyInterval>(); 
         this.Intervals = new List<EasyInterval>(); 
  
         // Get the Programmable Block that is running this script (thanks to LordDevious and LukeStrike) 
-        this.Self = this.GetSelf(); 
+        this.Self = new EasyBlock(me); 
  
         this.Reset(); 
     } 
@@ -114,17 +118,6 @@ public abstract class EasyAPI
         { 
             this.AddEvent(new EasyEvent<EasyBlock>(blocks.GetBlock(i), evnt, action)); 
         }         
-    } 
- 
-    // Get current running Programmable Block (Thanks to LordDevious and LukeStrike for finding out to do this) 
-    public EasyBlock GetSelf() 
-    { 
-        var blocks = new List<IMyTerminalBlock>(); 
-        GridTerminalSystem.GetBlocksOfType<IMyProgrammableBlock>(blocks, delegate(IMyTerminalBlock block) { 
-           return (block as IMyProgrammableBlock).IsRunning; 
-        }); 
-        if(blocks.Count > 1) {throw new Exception("More than one Programmable Block is running!");}
-        return new EasyBlock((IMyTerminalBlock)blocks[0]); 
     } 
  
     // Get messages sent to this block 
@@ -166,7 +159,7 @@ public abstract class EasyAPI
     } 
  
     /*** Execute one tick of the program (interval is the minimum time between ticks) ***/ 
-    public void Tick(long interval = 0) 
+    public void Tick(long interval = 0, string argument = "") 
     { 
         long now = DateTime.Now.Ticks;    
         if(this.clock > this.start && now - this.clock < interval) {     
@@ -191,6 +184,16 @@ public abstract class EasyAPI
         this.clock = now;                               
         this.delta = this.clock - lastClock;   
  
+        /*** Handle Arguments ***/
+        
+        if(this.ArgumentActions.ContainsKey(argument))
+        {
+            for(int n = 0; n < this.ArgumentActions[argument].Count; n++)
+            {
+                this.ArgumentActions[argument][n]();
+            }
+        }
+        
         /*** Handle Events ***/ 
         handleEvents(); 
  
@@ -223,6 +226,16 @@ public abstract class EasyAPI
  
     public long GetClock() {return clock;} 
  
+    public void On(string argument, Action callback)
+    {
+        if(!this.ArgumentActions.ContainsKey(argument))
+        {
+            this.ArgumentActions.Add(argument, new List<Action>());
+        }
+        
+        this.ArgumentActions[argument].Add(callback);
+    }
+    
     /*** Call a function at the specified time ***/ 
     public void At(long time, Action callback) 
     { 
