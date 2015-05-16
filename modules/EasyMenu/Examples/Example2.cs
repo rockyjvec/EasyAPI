@@ -27,7 +27,7 @@ public class Example : EasyAPI
         this.lcd = new EasyLCD(Blocks.Named("MenuLCD").FindOrFail("MenuLCD not found!"));
         
         
-        // Handle Commands
+        // Handle Arguments
         On("Up", delegate() {
             this.menu.Up();
             doUpdates();           
