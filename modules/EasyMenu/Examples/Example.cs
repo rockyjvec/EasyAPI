@@ -7,6 +7,7 @@ public class Example : EasyAPI
 
     EasyBlocks speaker;
 
+    public Example(IMyGridTerminalSystem grid, IMyProgrammableBlock me, Action<string> echo, TimeSpan elapsedTime) : base(grid, me, echo, elapsedTime) 
     {
         // Create menu
         this.menu = new EasyMenu("Test Menu", new [] {
