@@ -7,7 +7,7 @@ public class Example : EasyAPI
     
     EasyMenu menu;
 
-    public Example(IMyGridTerminalSystem grid, IMyProgrammableBlock me, Action<string> echo) : base(grid, me, echo) 
+    public Example(IMyGridTerminalSystem grid, IMyProgrammableBlock me, Action<string> echo, TimeSpan elapsedTime) : base(grid, me, echo, elapsedTime) 
     { 
         // Create menu
         this.menu = new EasyMenu("Explore", new [] {

@@ -46,7 +46,7 @@ public class Example : EasyAPI
         return false; // Remove the event once it is triggered.
     }
 
-    public Example(IMyGridTerminalSystem grid, IMyProgrammableBlock me, Action<string> echo) : base(grid, me, echo) 
+    public Example(IMyGridTerminalSystem grid, IMyProgrammableBlock me, Action<string> echo, TimeSpan elapsedTime) : base(grid, me, echo, elapsedTime) 
     {
         EasyBlocks monitoredBlocks = Blocks; // The event will be added to all these blocks
         

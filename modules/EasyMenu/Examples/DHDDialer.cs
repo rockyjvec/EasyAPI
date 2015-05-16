@@ -16,7 +16,7 @@ public class Example : EasyAPI
     EasyBlock dhd;
     EasyBlock addressBook;
     
-    public Example(IMyGridTerminalSystem grid, IMyProgrammableBlock me, Action<string> echo) : base(grid, me, echo) 
+    public Example(IMyGridTerminalSystem grid, IMyProgrammableBlock me, Action<string> echo, TimeSpan elapsedTime) : base(grid, me, echo, elapsedTime) 
     {
         this.lcd = new EasyLCD(Blocks.Named(lcdName).FindOrFail("Missing LCD.  Check lcdName: " + lcdName));
         this.dhd = Blocks.OfTypeLike(dhdType).FindOrFail("Missing DHD. Check dhdType: " + dhdType).GetBlock(0);
@@ -162,7 +162,7 @@ void Main(string argument)
 { 
     if(state == null) 
     { 
-        state = new Example(GridTerminalSystem, Me, Echo); 
+        state = new Example(GridTerminalSystem, Me, Echo, ElapsedTime); 
     } 
  
     // Set the minimum time between ticks here to prevent lag. 
@@ -185,6 +185,7 @@ public abstract class EasyAPI
  
     protected IMyGridTerminalSystem GridTerminalSystem; 
     protected Action<string> Echo;
+    protected TimeSpan ElapsedTime;
     static public IMyGridTerminalSystem grid; 
  
     /*** Events ***/ 
@@ -214,13 +215,14 @@ public abstract class EasyAPI
     public const long Years = 365 * Days; 
  
     /*** Constructor ***/ 
-    public EasyAPI(IMyGridTerminalSystem grid, IMyProgrammableBlock me, Action<string> echo) 
+    public EasyAPI(IMyGridTerminalSystem grid, IMyProgrammableBlock me, Action<string> echo, TimeSpan elapsedTime) 
     { 
         this.clock = this.start = DateTime.Now.Ticks; 
         this.delta = 0; 
  
         this.GridTerminalSystem = EasyAPI.grid = grid; 
         this.Echo = echo;
+        this.ElapsedTime = elapsedTime;
         this.ArgumentActions = new Dictionary<string,List<Action>>();
         this.Events = new List<IEasyEvent>(); 
         this.Schedule = new List<EasyInterval>(); 
@@ -1611,12 +1613,47 @@ static public bool EasyCompare(String op, String a, String b)
 /*** Utilities ***/ 
  
 public class EasyUtils { 
-    public static void Log(string logMessage) 
+    public const int LOG_MAX_ECHO_LENGTH_CHARS = 80000; // Mirrored value from MyProgrammableBlock.cs
+    public static StringBuilder LogBuffer;
+    public static void Log(string logMessage, Action<string> echo = null, IMyProgrammableBlock me = null, string label = null) 
     { 
-        String output = "\n"; 
-        output += logMessage; 
-        throw new Exception(output); 
+        String output = "";
+        if(echo == null) {
+            output = "\n"; 
+            output += logMessage; 
+            throw new Exception(output); 
+        }
+        if(LogBuffer == null) {
+            LogBuffer = new StringBuilder();
+        }
+        if(label != null) {
+            logMessage = label+": "+logMessage;
+        }
+        if(LogBuffer.Length == 0) {
+            LogBuffer.Append(logMessage);
+            echo(LogBuffer.ToString());
+            return;
+        }
+        if(LogBuffer.Length > LOG_MAX_ECHO_LENGTH_CHARS) {
+            string[] lines = LogBuffer.ToString().Split('\n');
+            int runningCount = 0;
+            for(int i=0; i<lines.Length; i++) {
+                runningCount += lines[i].Length;
+                if(runningCount > logMessage.Length) {
+                    break;
+                }
+            }
+            output.Substring(runningCount, output.Length - runningCount);
+            LogBuffer.Clear();
+            LogBuffer.Append(output);
+        }
+        LogBuffer.AppendLine();
+        LogBuffer.Append(logMessage);
+        echo(LogBuffer.ToString());
     } 
+    public static void ClearLogBuffer() {
+        LogBuffer.Clear();
+    }
  
     //because "System.array does not contain a definition for .Max()" 
     public static double Max(double[] values) { 
@@ -1635,7 +1672,7 @@ public class EasyUtils {
         } 
         return runningMin; 
     } 
-} 
+}
 
 /*** Menus ***/
 
