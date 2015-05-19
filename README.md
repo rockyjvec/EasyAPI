@@ -16,6 +16,8 @@ If possible, the site will use steam authentication and will support linking a m
 
 # Random feature ideas
 
+Automatically minify scripts to save space since there is a limit.
+
 Generate a DoxyGen documentation page for each library that is submitted to the site.
 
 Newb script generator.  Generate scripts without programming by specifying events and actions to perform.
