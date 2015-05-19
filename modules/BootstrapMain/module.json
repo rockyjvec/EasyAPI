@@ -1,0 +1,13 @@
+{
+    "name": "Bootstrap Main",
+    "description": "Blank template script with only Main function.",
+    "type": "script",
+    "version": "1.0",
+    "require": {
+    },
+    "conflict": {
+        "BootstrapEasyAPI"
+    },
+    "suggest": {
+    }
+}

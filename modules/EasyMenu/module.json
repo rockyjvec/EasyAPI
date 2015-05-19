@@ -1,0 +1,14 @@
+{
+    "name": "EasyMenu",
+    "description": "Generates interactive menus.  Returns string which can be displayed on LCDs or used in other scripts.",
+    "type": "library",
+    "version": "1.0",
+    "require": {
+    },
+    "conflict": {
+    },
+    "suggest": {
+        "EasyAPI": "Makes it easier to create menus.",
+        "EasyLCD": "You can use EasyLCD to display the menu."
+    }
+}

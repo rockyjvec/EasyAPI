@@ -1,0 +1,14 @@
+{
+    "name": "Bootstrap EasyAPI",
+    "description": "Blank template to quickly get started with EasyAPI.",
+    "type": "script",
+    "version": "1.0",
+    "require": {
+        "EasyAPI"
+    },
+    "conflict": {
+        "BootstrapMain"
+    },
+    "suggest": {
+    }
+}

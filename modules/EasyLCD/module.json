@@ -1,0 +1,14 @@
+{
+    "name": "EasyLCD",
+    "description": "Class that makes drawing to LCDs easy.",
+    "type": "library",
+    "version": "1.0",
+    "require": {
+        "EasyAPI"
+    },
+    "conflict": {
+    },
+    "suggest": {
+        "EasyMenu": "Make menus to display on the LCD."
+    }
+}

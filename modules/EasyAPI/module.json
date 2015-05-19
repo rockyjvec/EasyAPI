@@ -1,0 +1,13 @@
+{
+    "name": "EasyAPI",
+    "description": "Abstraction library that makes programming in Space Engineers much easier.",
+    "type": "library",
+    "version": "1.0",
+    "require": {
+    },
+    "conflict": {
+    },
+    "suggest": {
+        "BootstrapEasyAPI"
+    }
+}

@@ -1,0 +1,13 @@
+{
+    "name": "EasyUtils",
+    "description": "Extra utility functions",
+    "type": "library",
+    "version": "1.0",
+    "require": {   
+    },
+    "conflict": {
+    },
+    "suggest": {
+        "EasyAPI": "Designed to work with EasyAPI."
+    }
+}
