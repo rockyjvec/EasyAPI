@@ -235,6 +235,8 @@ public abstract class EasyAPI
     /*** Refreshes blocks.  If you add or remove blocks, call this. ***/
     public void Refresh()
     {
-        Blocks = new EasyBlocks(GridTerminalSystem.Blocks);
+        List<IMyTerminalBlock> kBlocks = new List<IMyTerminalBlock>();
+        GridTerminalSystem.GetBlocks(kBlocks);
+        Blocks = new EasyBlocks(kBlocks);
     }
 }

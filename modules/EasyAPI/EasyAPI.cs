@@ -235,7 +235,9 @@ public abstract class EasyAPI
     /*** Refreshes blocks.  If you add or remove blocks, call this. ***/
     public void Refresh()
     {
-        Blocks = new EasyBlocks(GridTerminalSystem.Blocks);
+        List<IMyTerminalBlock> kBlocks = new List<IMyTerminalBlock>();
+        GridTerminalSystem.GetBlocks(kBlocks);
+        Blocks = new EasyBlocks(kBlocks);
     }
 }
 public class EasyBlocks
@@ -430,7 +432,8 @@ public class EasyBlocks
     {
         List<EasyBlock> FilteredList = new List<EasyBlock>();
 
-        List<IMyBlockGroup> groups = EasyAPI.grid.BlockGroups;
+        List<IMyBlockGroup> groups = new List<IMyBlockGroup>();
+        EasyAPI.grid.GetBlockGroups(groups);
         List<IMyBlockGroup> matchedGroups = new List<IMyBlockGroup>();
 
         for(int n = 0; n < groups.Count; n++)

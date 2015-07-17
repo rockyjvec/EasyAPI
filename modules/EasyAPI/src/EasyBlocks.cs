@@ -190,7 +190,8 @@ public class EasyBlocks
     {
         List<EasyBlock> FilteredList = new List<EasyBlock>();
 
-        List<IMyBlockGroup> groups = EasyAPI.grid.BlockGroups;
+        List<IMyBlockGroup> groups = new List<IMyBlockGroup>();
+        EasyAPI.grid.GetBlockGroups(groups);
         List<IMyBlockGroup> matchedGroups = new List<IMyBlockGroup>();
 
         for(int n = 0; n < groups.Count; n++)
