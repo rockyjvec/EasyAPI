@@ -130,6 +130,16 @@ public abstract class EasyAPI
     /*** Execute one tick of the program (interval is the minimum time between ticks) ***/
     public void Tick(long interval = 0, string argument = "")
     {
+         /*** Handle Arguments ***/
+
+        if(this.ArgumentActions.ContainsKey(argument))
+        {
+            for(int n = 0; n < this.ArgumentActions[argument].Count; n++)
+            {
+                this.ArgumentActions[argument][n]();
+            }
+        }
+
         long now = DateTime.Now.Ticks;
         if(this.clock > this.start && now - this.clock < interval) {
             InterTickRunCount++;
@@ -153,17 +163,7 @@ public abstract class EasyAPI
         this.clock = now;
         this.delta = this.clock - lastClock;
 
-        /*** Handle Arguments ***/
-
-        if(this.ArgumentActions.ContainsKey(argument))
-        {
-            for(int n = 0; n < this.ArgumentActions[argument].Count; n++)
-            {
-                this.ArgumentActions[argument][n]();
-            }
-        }
-
-        /*** Handle Events ***/
+       /*** Handle Events ***/
         handleEvents();
 
         /*** Handle Intervals ***/
