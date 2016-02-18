@@ -11,4 +11,3 @@ copy /b ^
   src\EasyCompare.cs +^
   src\EasyUtils.cs ^
   EasyAPI.cs
-pause

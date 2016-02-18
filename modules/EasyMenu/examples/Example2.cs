@@ -47,6 +47,10 @@ public class Example : EasyAPI
             this.menu.Back();
             doUpdates();           
         });
+        
+        On("Update", delegate() {
+            doUpdates();
+        });
     } 
     
     public bool toggleDoor(EasyMenuItem item)

@@ -1,3 +1,34 @@
+/************************************************************************************
+EasyAPI - Documentation: http://steamcommunity.com/sharedfiles/filedetails/?id=381043
+*************************************************************************************/
+
+public class Example : EasyAPI
+{
+    public Example(IMyGridTerminalSystem grid, IMyProgrammableBlock me, Action<string> echo, TimeSpan elapsedTime) : base(grid, me, echo, elapsedTime)
+    {
+        // Start your code here
+    }
+}
+
+
+/*********************************************/ 
+/*** Advanced users only beyond this point ***/ 
+/*********************************************/ 
+
+Example state;
+
+void Main(string argument)
+{
+    if(state == null)
+    {
+        state = new Example(GridTerminalSystem, Me, Echo, ElapsedTime);
+    }
+
+    // Set the minimum time between ticks here to prevent lag.
+    // To utilise onSingleTap and onDoubleTap, set the minimum time to the same
+    // time period of the timer running this script (e.g. 1 * EasyAPI.Seconds).
+    state.Tick(100 * EasyAPI.Milliseconds, argument);
+}
 /**************************************************/ 
 /*** EasyAPI class. Extend for easier scripting ***/ 
 /**************************************************/ 
@@ -1220,20 +1251,17 @@ public class EasyEvent : IEasyEvent
     }
     return false;
 }
- 
-/*** Utilities ***/ 
- 
-public class EasyUtils { 
+public class EasyUtils {
     public const int LOG_MAX_ECHO_LENGTH_CHARS = 8000; // Mirrored value from MyProgrammableBlock.cs
     public const int LOG_MAX_LCD_LENGTH_CHARS = 4200; // Mirrored value from MyTextPanel.cs
     public static StringBuilder LogBuffer;
-    public static void Log(string logMessage, Action<string> echo = null, IMyProgrammableBlock me = null, string label = null, IMyTextPanel mirrorLcd = null, bool truncateForLcd = true) 
-    { 
+    public static void Log(string logMessage, Action<string> echo = null, IMyProgrammableBlock me = null, string label = null, IMyTextPanel mirrorLcd = null, bool truncateForLcd = true)
+    {
         String output = "";
         if(echo == null) {
-            output = "\n"; 
-            output += logMessage; 
-            throw new Exception(output); 
+            output = "\n";
+            output += logMessage;
+            throw new Exception(output);
         }
         if(LogBuffer == null) {
             LogBuffer = new StringBuilder();
@@ -1265,7 +1293,7 @@ public class EasyUtils {
         }
         LogBuffer.Append(logMessage);
         echo(LogBuffer.ToString());
-    } 
+    }
     public static int fullLineCharsExceeding(StringBuilder sb, int maxLength, int offset = 0) {
         int runningCount = 0;
         for(int i=offset; i<sb.Length; i++) {
@@ -1281,26 +1309,25 @@ public class EasyUtils {
     public static void ClearLogBuffer() {
         LogBuffer.Clear();
     }
- 
-    //because "System.array does not contain a definition for .Max()" 
-    public static double Max(double[] values) { 
-        double runningMax = values[0]; 
-        for(int i=1; i<values.Length; i++) { 
-            runningMax = Math.Max(runningMax, values[i]); 
-        } 
-        return runningMax; 
-    } 
- 
-    //because "System.array does not contain a definition for .Min()" 
-    public static double Min(double[] values) { 
-        double runningMin = values[0]; 
-        for(int i=1; i<values.Length; i++) { 
-            runningMin = Math.Min(runningMin, values[i]); 
-        } 
-        return runningMin; 
-    } 
-}
 
+    //because "System.array does not contain a definition for .Max()"
+    public static double Max(double[] values) {
+        double runningMax = values[0];
+        for(int i=1; i<values.Length; i++) {
+            runningMax = Math.Max(runningMax, values[i]);
+        }
+        return runningMax;
+    }
+
+    //because "System.array does not contain a definition for .Min()"
+    public static double Min(double[] values) {
+        double runningMin = values[0];
+        for(int i=1; i<values.Length; i++) {
+            runningMin = Math.Min(runningMin, values[i]);
+        }
+        return runningMin;
+    }
+}
 public class EasyLCD
 {
     public char[] buffer;
