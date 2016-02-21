@@ -16,6 +16,7 @@ public abstract class EasyAPI
  
     /*** Events ***/ 
     private Dictionary<string,List<Action>> ArgumentActions; 
+    private Dictionary<string,List<Action<int, string[]>>> CommandActions; 
     private List<EasyInterval> Schedule; 
     private List<EasyInterval> Intervals; 
     private List<IEasyEvent> Events; 
@@ -50,6 +51,7 @@ public abstract class EasyAPI
         this.Echo = echo; 
         this.ElapsedTime = elapsedTime; 
         this.ArgumentActions = new Dictionary<string,List<Action>>(); 
+        this.CommandActions = new Dictionary<string,List<Action<int, string[]>>>(); 
         this.Events = new List<IEasyEvent>(); 
         this.Schedule = new List<EasyInterval>(); 
         this.Intervals = new List<EasyInterval>(); 
@@ -140,6 +142,28 @@ public abstract class EasyAPI
             } 
         } 
  
+        if(this.CommandActions.Count > 0) 
+        {
+            int argc = 0;
+            var matches = System.Text.RegularExpressions.Regex.Matches(argument, @"(?<match>[^\s""]+)|""(?<match>[^""]*)""");
+            
+            string[] argv = new string[matches.Count];
+            for(int n = 0; n < matches.Count; n++)
+            {
+                argv[n] = matches[n].Groups["match"].Value;
+            }
+            
+            argc = argv.Length;
+            
+            if(argc > 0 && this.CommandActions.ContainsKey(argv[0]))
+            {
+                for(int n = 0; n < this.CommandActions[argv[0]].Count; n++) 
+                { 
+                    this.CommandActions[argv[0]][n](argc, argv); 
+                }                 
+            }
+        } 
+
         long now = DateTime.Now.Ticks; 
         if(this.clock > this.start && now - this.clock < interval) { 
             InterTickRunCount++; 
@@ -203,6 +227,16 @@ public abstract class EasyAPI
         } 
  
         this.ArgumentActions[argument].Add(callback); 
+    } 
+ 
+    public void OnCommand(string argument, Action<int, string[]> callback) 
+    { 
+        if(!this.CommandActions.ContainsKey(argument)) 
+        { 
+            this.CommandActions.Add(argument, new List<Action<int, string[]>>()); 
+        } 
+ 
+        this.CommandActions[argument].Add(callback);
     } 
  
     /*** Call a function at the specified time ***/ 
