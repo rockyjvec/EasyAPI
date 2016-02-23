@@ -9,5 +9,6 @@ copy /b ^
   src\IEasyEvent.cs +^
   src\EasyEvent.cs +^
   src\EasyCompare.cs +^
-  src\EasyUtils.cs ^
+  src\EasyUtils.cs +^
+  src\EasyCommands.cs ^
   EasyAPI.cs

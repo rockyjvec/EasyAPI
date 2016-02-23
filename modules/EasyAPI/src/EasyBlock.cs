@@ -214,6 +214,54 @@ public struct EasyBlock
         return this;
     }
 
+    public EasyBlock WritePublicText(string text)
+    {
+        IMyTextPanel textPanel = Block as IMyTextPanel;
+
+        if(textPanel != null)
+        {
+            textPanel.WritePublicText(text, false);
+        }
+
+        return this;
+    }
+
+    public EasyBlock WritePrivateText(string text)
+    {
+        IMyTextPanel textPanel = Block as IMyTextPanel;
+
+        if(textPanel != null)
+        {
+            textPanel.WritePrivateText(text, false);
+        }
+
+        return this;
+    }
+
+    public EasyBlock AppendPublicText(string text)
+    {
+        IMyTextPanel textPanel = Block as IMyTextPanel;
+
+        if(textPanel != null)
+        {
+            textPanel.WritePublicText(text, true);
+        }
+
+        return this;
+    }
+
+    public EasyBlock AppendPrivateText(string text)
+    {
+        IMyTextPanel textPanel = Block as IMyTextPanel;
+
+        if(textPanel != null)
+        {
+            textPanel.WritePrivateText(text, true);
+        }
+
+        return this;
+    }
+
     public EasyBlock SetName(String Name)
     {
         this.Block.SetCustomName(Name);

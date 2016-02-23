@@ -40,9 +40,10 @@ public abstract class EasyAPI
  
     public EasyBlock Self; // Reference to the Programmable Block that is running this script 
  
-    protected IMyGridTerminalSystem GridTerminalSystem; 
-    protected Action<string> Echo; 
-    protected TimeSpan ElapsedTime; 
+    public IMyGridTerminalSystem GridTerminalSystem;
+    public Action<string> Echo;
+    public TimeSpan ElapsedTime;
+    
     static public IMyGridTerminalSystem grid; 
  
     /*** Events ***/ 
@@ -51,6 +52,7 @@ public abstract class EasyAPI
     private List<EasyInterval> Schedule; 
     private List<EasyInterval> Intervals; 
     private List<IEasyEvent> Events; 
+    private EasyCommands commands;
  
     /*** Overridable lifecycle methods ***/ 
     public virtual void onRunThrottled(float intervalTranspiredPercentage) {} 
@@ -73,7 +75,7 @@ public abstract class EasyAPI
     public const long Years = 365 * Days; 
  
     /*** Constructor ***/ 
-    public EasyAPI(IMyGridTerminalSystem grid, IMyProgrammableBlock me, Action<string> echo, TimeSpan elapsedTime) 
+    public EasyAPI(IMyGridTerminalSystem grid, IMyProgrammableBlock me, Action<string> echo, TimeSpan elapsedTime, string commandArgument = "$") 
     { 
         this.clock = this.start = DateTime.Now.Ticks; 
         this.delta = 0; 
@@ -86,6 +88,7 @@ public abstract class EasyAPI
         this.Events = new List<IEasyEvent>(); 
         this.Schedule = new List<EasyInterval>(); 
         this.Intervals = new List<EasyInterval>(); 
+        this.commands = new EasyCommands(this, commandArgument);
  
         // Get the Programmable Block that is running this script (thanks to LordDevious and LukeStrike) 
         this.Self = new EasyBlock(me); 
@@ -165,35 +168,37 @@ public abstract class EasyAPI
     { 
         /*** Handle Arguments ***/ 
  
-        if(this.ArgumentActions.ContainsKey(argument)) 
-        { 
-            for(int n = 0; n < this.ArgumentActions[argument].Count; n++) 
+        if(argument != "")
+        {           
+            if(this.ArgumentActions.ContainsKey(argument)) 
             { 
-                this.ArgumentActions[argument][n](); 
-            } 
-        } 
- 
-        if(this.CommandActions.Count > 0) 
-        {
-            int argc = 0;
-            var matches = System.Text.RegularExpressions.Regex.Matches(argument, @"(?<match>[^\s""]+)|""(?<match>[^""]*)""");
-            
-            string[] argv = new string[matches.Count];
-            for(int n = 0; n < matches.Count; n++)
-            {
-                argv[n] = matches[n].Groups["match"].Value;
-            }
-            
-            argc = argv.Length;
-            
-            if(argc > 0 && this.CommandActions.ContainsKey(argv[0]))
-            {
-                for(int n = 0; n < this.CommandActions[argv[0]].Count; n++) 
+                for(int n = 0; n < this.ArgumentActions[argument].Count; n++) 
                 { 
-                    this.CommandActions[argv[0]][n](argc, argv); 
-                }                 
-            }
-        } 
+                    this.ArgumentActions[argument][n](); 
+                } 
+            } 
+            else if(this.CommandActions.Count > 0) 
+            {
+                int argc = 0;
+                var matches = System.Text.RegularExpressions.Regex.Matches(argument, @"(?<match>[^\s""]+)|""(?<match>[^""]*)""");
+                
+                string[] argv = new string[matches.Count];
+                for(int n = 0; n < matches.Count; n++)
+                {
+                    argv[n] = matches[n].Groups["match"].Value;
+                }
+                
+                argc = argv.Length;
+                
+                if(argc > 0 && this.CommandActions.ContainsKey(argv[0]))
+                {
+                    for(int n = 0; n < this.CommandActions[argv[0]].Count; n++) 
+                    { 
+                        this.CommandActions[argv[0]][n](argc, argv); 
+                    }                 
+                }
+            } 
+        }
 
         long now = DateTime.Now.Ticks; 
         if(this.clock > this.start && now - this.clock < interval) { 
@@ -713,7 +718,47 @@ public class EasyBlocks
 
         return this;
     }
+    
+    public EasyBlocks WritePublicText(string text)
+    {
+        for(int i = 0; i < this.Blocks.Count; i++)
+        {
+            this.Blocks[i].WritePublicText(text);
+        }
 
+        return this;
+    }
+
+    public EasyBlocks WritePrivateText(string text)
+    {
+        for(int i = 0; i < this.Blocks.Count; i++)
+        {
+            this.Blocks[i].WritePublicText(text);
+        }
+
+        return this;
+    }
+
+    public EasyBlocks AppendPublicText(string text)
+    {
+        for(int i = 0; i < this.Blocks.Count; i++)
+        {
+            this.Blocks[i].AppendPublicText(text);
+        }
+
+        return this;
+    }
+
+    public EasyBlocks AppendPrivateText(string text)
+    {
+        for(int i = 0; i < this.Blocks.Count; i++)
+        {
+            this.Blocks[i].AppendPrivateText(text);
+        }
+
+        return this;
+    }    
+    
     public EasyInventory Items()
     {
         return new EasyInventory(this.Blocks);
@@ -993,6 +1038,54 @@ public struct EasyBlock
         else
         {
             this.On();
+        }
+
+        return this;
+    }
+
+    public EasyBlock WritePublicText(string text)
+    {
+        IMyTextPanel textPanel = Block as IMyTextPanel;
+
+        if(textPanel != null)
+        {
+            textPanel.WritePublicText(text, false);
+        }
+
+        return this;
+    }
+
+    public EasyBlock WritePrivateText(string text)
+    {
+        IMyTextPanel textPanel = Block as IMyTextPanel;
+
+        if(textPanel != null)
+        {
+            textPanel.WritePrivateText(text, false);
+        }
+
+        return this;
+    }
+
+    public EasyBlock AppendPublicText(string text)
+    {
+        IMyTextPanel textPanel = Block as IMyTextPanel;
+
+        if(textPanel != null)
+        {
+            textPanel.WritePublicText(text, true);
+        }
+
+        return this;
+    }
+
+    public EasyBlock AppendPrivateText(string text)
+    {
+        IMyTextPanel textPanel = Block as IMyTextPanel;
+
+        if(textPanel != null)
+        {
+            textPanel.WritePrivateText(text, true);
         }
 
         return this;
@@ -1284,6 +1377,222 @@ public class EasyEvent : IEasyEvent
             return !EasyCompare("R", a, b);
     }
     return false;
+}
+/*** Commands ***/
+
+// Base EasyCommands class
+public class EasyCommands
+{
+    /*** Private Properties ***/
+    
+    private EasyAPI api; // The selected menu item (child)
+    private EasyBlocks blocks;
+    
+    /*** Constructors ***/
+    
+    public EasyCommands(EasyAPI api, string command = "EasyAPI")
+    {
+        this.api = api;
+        
+        api.OnCommand(command, this.handle);
+    }
+    
+    /*** Private Methods ***/
+    
+    private bool checkArg(int argument, string[] argv)
+    {
+        return (argument < argv.Length);
+    }
+    
+    private void handle(int argc, string[] argv)
+    {
+        if(argc > 1)
+        {
+            try
+            {
+                this.blocks = null;
+                handleCommand(1, argv);                
+            }
+            catch(IndexOutOfRangeException e)
+            {
+                return;
+            }
+        }
+    }
+    
+    private void handleCommand(int argument, string[] argv)
+    {
+        while(checkArg(argument, argv))
+        {
+            switch(argv[argument])
+            {
+                case "Echo":
+                    argument = handleEcho(argument + 1, argv);
+                    break;
+                case "Blocks":
+                    argument = handleBlocks(argument + 1, argv);
+                    break;
+                default: // By default, use argument as TerminalBlock type command
+                    this.blocks = api.Blocks.OfType(argv[argument]);
+                    argument = handleBlocks(argument + 1, argv);
+                    break;
+            }
+        }
+    }
+    
+    private int handleEcho(int argument, string[] argv)
+    {
+        while(checkArg(argument, argv))
+        {
+            api.Echo(argv[argument]);
+            argument++;
+        }
+        
+        return argument;
+    }
+    
+    private int handleBlocks(int argument, string[] argv)
+    {
+        if(this.blocks == null)
+        {
+            api.Refresh();
+            this.blocks = api.Blocks;
+        }
+        
+        while(checkArg(argument, argv))
+        {
+            string filter = argv[argument];
+            switch(filter[0])
+            {
+                case '~':
+                    blocks = blocks.NamedLike(filter.Substring(1));
+                    break;
+                case '!':
+                    blocks = blocks.NotNamed(filter.Substring(1));
+                    break;
+                case '*':
+                    break;
+                default:
+                    switch(filter)
+                    {
+                        /*** Actions ***/
+                        case "ApplyAction":
+                            argument++;
+                            if(!checkArg(argument, argv)) break;
+                            blocks.ApplyAction(argv[argument]);
+                            break;
+                        case "WritePublicText":
+                            argument++;
+                            if(!checkArg(argument, argv)) break;
+                            blocks.WritePublicText(argv[argument]);
+                            break;
+                        case "WritePrivateText":
+                            argument++;
+                            if(!checkArg(argument, argv)) break;
+                            blocks.WritePrivateText(argv[argument]);
+                            break;
+                        case "AppendPublicText":
+                            argument++;
+                            if(!checkArg(argument, argv)) break;
+                            blocks.AppendPublicText(argv[argument]);
+                            break;
+                        case "AppendPrivateText":
+                            argument++;
+                            if(!checkArg(argument, argv)) break;
+                            blocks.AppendPrivateText(argv[argument]);
+                            break;
+                        case "On":
+                            blocks.On();
+                            break;
+                        case "Off":
+                            blocks.Off();
+                            break;
+                        case "Toggle":
+                            blocks.Toggle();
+                            break;
+                        case "DebugDump":
+                            blocks.DebugDump();
+                            break;
+                        case "DebugDumpActions":
+                            blocks.DebugDumpActions();
+                            break;
+                        case "DebugDumpProperties":
+                            blocks.DebugDumpActions();
+                            break;
+
+                        /*** Filters ***/
+                        case "Named":
+                            argument++;
+                            if(!checkArg(argument, argv)) break;
+                            blocks = blocks.Named(argv[argument]);
+                            break;
+                        case "NamedLike":
+                            argument++;
+                            if(!checkArg(argument, argv)) break;
+                            blocks = blocks.NamedLike(argv[argument]);
+                            break;
+                        case "NotNamed":
+                            argument++;
+                            if(!checkArg(argument, argv)) break;
+                            blocks = blocks.NotNamed(argv[argument]);
+                            break;
+                        case "NotNamedLike":
+                            argument++;
+                            if(!checkArg(argument, argv)) break;
+                            blocks = blocks.NotNamedLike(argv[argument]);
+                            break;
+                        case "InGroupNamed":
+                            argument++;
+                            if(!checkArg(argument, argv)) break;
+                            blocks = blocks.InGroupsNamed(argv[argument]);
+                            break;
+                        case "InGroupNamedLike":
+                            argument++;
+                            if(!checkArg(argument, argv)) break;
+                            blocks = blocks.InGroupsNamedLike(argv[argument]);
+                            break;
+                        case "InGroupNotNamed":
+                            argument++;
+                            if(!checkArg(argument, argv)) break;
+                            blocks = blocks.InGroupsNotNamed(argv[argument]);
+                            break;
+                        case "InGroupNotNamedLike":
+                            argument++;
+                            if(!checkArg(argument, argv)) break;
+                            blocks = blocks.InGroupsNotNamedLike(argv[argument]);
+                            break;
+                        case "OfType":
+                            argument++;
+                            if(!checkArg(argument, argv)) break;
+                            blocks = blocks.OfType(argv[argument]);
+                            break;
+                        case "OfTypeLike":
+                            argument++;
+                            if(!checkArg(argument, argv)) break;
+                            blocks = blocks.OfTypeLike(argv[argument]);
+                            break;
+                        case "NotOfType":
+                            argument++;
+                            if(!checkArg(argument, argv)) break;
+                            blocks = blocks.NotOfType(argv[argument]);
+                            break;
+                        case "NotOfTypeLike":
+                            argument++;
+                            if(!checkArg(argument, argv)) break;
+                            blocks = blocks.OfTypeLike(argv[argument]);
+                            break;
+                        default:
+                            blocks = blocks.Named(argv[argument]);
+                            break;
+                    }
+                    break;
+            }
+            
+            argument++;
+        }
+        
+        return argument;
+    }
 }
 public class EasyUtils {
     public const int LOG_MAX_ECHO_LENGTH_CHARS = 8000; // Mirrored value from MyProgrammableBlock.cs

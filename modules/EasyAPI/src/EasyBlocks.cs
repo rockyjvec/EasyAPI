@@ -406,7 +406,47 @@ public class EasyBlocks
 
         return this;
     }
+    
+    public EasyBlocks WritePublicText(string text)
+    {
+        for(int i = 0; i < this.Blocks.Count; i++)
+        {
+            this.Blocks[i].WritePublicText(text);
+        }
 
+        return this;
+    }
+
+    public EasyBlocks WritePrivateText(string text)
+    {
+        for(int i = 0; i < this.Blocks.Count; i++)
+        {
+            this.Blocks[i].WritePublicText(text);
+        }
+
+        return this;
+    }
+
+    public EasyBlocks AppendPublicText(string text)
+    {
+        for(int i = 0; i < this.Blocks.Count; i++)
+        {
+            this.Blocks[i].AppendPublicText(text);
+        }
+
+        return this;
+    }
+
+    public EasyBlocks AppendPrivateText(string text)
+    {
+        for(int i = 0; i < this.Blocks.Count; i++)
+        {
+            this.Blocks[i].AppendPrivateText(text);
+        }
+
+        return this;
+    }    
+    
     public EasyInventory Items()
     {
         return new EasyInventory(this.Blocks);

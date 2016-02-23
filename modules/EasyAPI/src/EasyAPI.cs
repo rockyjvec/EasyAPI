@@ -9,9 +9,10 @@ public abstract class EasyAPI
  
     public EasyBlock Self; // Reference to the Programmable Block that is running this script 
  
-    protected IMyGridTerminalSystem GridTerminalSystem; 
-    protected Action<string> Echo; 
-    protected TimeSpan ElapsedTime; 
+    public IMyGridTerminalSystem GridTerminalSystem;
+    public Action<string> Echo;
+    public TimeSpan ElapsedTime;
+    
     static public IMyGridTerminalSystem grid; 
  
     /*** Events ***/ 
@@ -20,6 +21,7 @@ public abstract class EasyAPI
     private List<EasyInterval> Schedule; 
     private List<EasyInterval> Intervals; 
     private List<IEasyEvent> Events; 
+    private EasyCommands commands;
  
     /*** Overridable lifecycle methods ***/ 
     public virtual void onRunThrottled(float intervalTranspiredPercentage) {} 
@@ -42,7 +44,7 @@ public abstract class EasyAPI
     public const long Years = 365 * Days; 
  
     /*** Constructor ***/ 
-    public EasyAPI(IMyGridTerminalSystem grid, IMyProgrammableBlock me, Action<string> echo, TimeSpan elapsedTime) 
+    public EasyAPI(IMyGridTerminalSystem grid, IMyProgrammableBlock me, Action<string> echo, TimeSpan elapsedTime, string commandArgument = "$") 
     { 
         this.clock = this.start = DateTime.Now.Ticks; 
         this.delta = 0; 
@@ -55,6 +57,7 @@ public abstract class EasyAPI
         this.Events = new List<IEasyEvent>(); 
         this.Schedule = new List<EasyInterval>(); 
         this.Intervals = new List<EasyInterval>(); 
+        this.commands = new EasyCommands(this, commandArgument);
  
         // Get the Programmable Block that is running this script (thanks to LordDevious and LukeStrike) 
         this.Self = new EasyBlock(me); 
@@ -134,35 +137,37 @@ public abstract class EasyAPI
     { 
         /*** Handle Arguments ***/ 
  
-        if(this.ArgumentActions.ContainsKey(argument)) 
-        { 
-            for(int n = 0; n < this.ArgumentActions[argument].Count; n++) 
+        if(argument != "")
+        {           
+            if(this.ArgumentActions.ContainsKey(argument)) 
             { 
-                this.ArgumentActions[argument][n](); 
-            } 
-        } 
- 
-        if(this.CommandActions.Count > 0) 
-        {
-            int argc = 0;
-            var matches = System.Text.RegularExpressions.Regex.Matches(argument, @"(?<match>[^\s""]+)|""(?<match>[^""]*)""");
-            
-            string[] argv = new string[matches.Count];
-            for(int n = 0; n < matches.Count; n++)
-            {
-                argv[n] = matches[n].Groups["match"].Value;
-            }
-            
-            argc = argv.Length;
-            
-            if(argc > 0 && this.CommandActions.ContainsKey(argv[0]))
-            {
-                for(int n = 0; n < this.CommandActions[argv[0]].Count; n++) 
+                for(int n = 0; n < this.ArgumentActions[argument].Count; n++) 
                 { 
-                    this.CommandActions[argv[0]][n](argc, argv); 
-                }                 
-            }
-        } 
+                    this.ArgumentActions[argument][n](); 
+                } 
+            } 
+            else if(this.CommandActions.Count > 0) 
+            {
+                int argc = 0;
+                var matches = System.Text.RegularExpressions.Regex.Matches(argument, @"(?<match>[^\s""]+)|""(?<match>[^""]*)""");
+                
+                string[] argv = new string[matches.Count];
+                for(int n = 0; n < matches.Count; n++)
+                {
+                    argv[n] = matches[n].Groups["match"].Value;
+                }
+                
+                argc = argv.Length;
+                
+                if(argc > 0 && this.CommandActions.ContainsKey(argv[0]))
+                {
+                    for(int n = 0; n < this.CommandActions[argv[0]].Count; n++) 
+                    { 
+                        this.CommandActions[argv[0]][n](argc, argv); 
+                    }                 
+                }
+            } 
+        }
 
         long now = DateTime.Now.Ticks; 
         if(this.clock > this.start && now - this.clock < interval) { 
