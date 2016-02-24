@@ -296,8 +296,20 @@ public struct EasyBlock
         return a.Block == b.Block;
     }
 
+    public override bool Equals(object o)
+    {
+        return (EasyBlock)o == this;
+    }
+    
+    public override int GetHashCode()
+    {
+        return Block.GetHashCode();
+    }
+    
     public static bool operator !=(EasyBlock a, EasyBlock b)
     {
         return a.Block != b.Block;
     }
+    
+    
 }

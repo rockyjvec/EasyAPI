@@ -10,7 +10,7 @@ public class EasyCommands
     
     /*** Constructors ***/
     
-    public EasyCommands(EasyAPI api, string command = "EasyAPI")
+    public EasyCommands(EasyAPI api, string command = "EasyCommand")
     {
         this.api = api;
         
@@ -24,7 +24,7 @@ public class EasyCommands
         return (argument < argv.Length);
     }
     
-    private void handle(int argc, string[] argv)
+    public void handle(int argc, string[] argv)
     {
         if(argc > 1)
         {

@@ -6,9 +6,7 @@ copy /b ^
   src\EasyItem.cs +^
   src\EasyInterval.cs +^
   src\EasyMessage.cs +^
-  src\IEasyEvent.cs +^
-  src\EasyEvent.cs +^
-  src\EasyCompare.cs +^
   src\EasyUtils.cs +^
-  src\EasyCommands.cs ^
+  src\EasyCommands.cs +^
+  src\EasyEvent.cs ^
   EasyAPI.cs

@@ -20,7 +20,7 @@ public abstract class EasyAPI
     private Dictionary<string,List<Action<int, string[]>>> CommandActions; 
     private List<EasyInterval> Schedule; 
     private List<EasyInterval> Intervals; 
-    private List<IEasyEvent> Events; 
+    private List<EasyEvent> Events; 
     private EasyCommands commands;
  
     /*** Overridable lifecycle methods ***/ 
@@ -44,7 +44,7 @@ public abstract class EasyAPI
     public const long Years = 365 * Days; 
  
     /*** Constructor ***/ 
-    public EasyAPI(IMyGridTerminalSystem grid, IMyProgrammableBlock me, Action<string> echo, TimeSpan elapsedTime, string commandArgument = "$") 
+    public EasyAPI(IMyGridTerminalSystem grid, IMyProgrammableBlock me, Action<string> echo, TimeSpan elapsedTime, string commandArgument = "EasyCommand") 
     { 
         this.clock = this.start = DateTime.Now.Ticks; 
         this.delta = 0; 
@@ -54,7 +54,7 @@ public abstract class EasyAPI
         this.ElapsedTime = elapsedTime; 
         this.ArgumentActions = new Dictionary<string,List<Action>>(); 
         this.CommandActions = new Dictionary<string,List<Action<int, string[]>>>(); 
-        this.Events = new List<IEasyEvent>(); 
+        this.Events = new List<EasyEvent>(); 
         this.Schedule = new List<EasyInterval>(); 
         this.Intervals = new List<EasyInterval>(); 
         this.commands = new EasyCommands(this, commandArgument);
@@ -69,14 +69,14 @@ public abstract class EasyAPI
     { 
         for(int n = 0; n < Events.Count; n++) 
         { 
-            if(!Events[n].handle()) 
+            if(!(Events[n].handle)()) 
             { 
                 Events.Remove(Events[n]); 
             } 
         } 
     } 
  
-    public void AddEvent(IEasyEvent e) 
+    public void AddEvent(EasyEvent e) 
     { 
         Events.Add(e); 
     } 
@@ -202,7 +202,7 @@ public abstract class EasyAPI
             { 
                 long time = this.clock + this.Intervals[n].interval - (this.clock - this.Intervals[n].time); 
  
-                this.Intervals[n].action(); 
+                (this.Intervals[n].action)(); 
                 this.Intervals[n] = new EasyInterval(time, this.Intervals[n].interval, this.Intervals[n].action); // reset time interval 
             } 
         } 
@@ -212,7 +212,7 @@ public abstract class EasyAPI
         { 
             if(this.clock >= this.Schedule[n].time) 
             { 
-                this.Schedule[n].action(); 
+                (this.Schedule[n].action)(); 
                 Schedule.Remove(this.Schedule[n]); 
             } 
         } 

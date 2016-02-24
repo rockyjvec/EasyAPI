@@ -20,7 +20,7 @@ public abstract class EasyAPI
     private Dictionary<string,List<Action<int, string[]>>> CommandActions; 
     private List<EasyInterval> Schedule; 
     private List<EasyInterval> Intervals; 
-    private List<IEasyEvent> Events; 
+    private List<EasyEvent> Events; 
     private EasyCommands commands;
  
     /*** Overridable lifecycle methods ***/ 
@@ -44,7 +44,7 @@ public abstract class EasyAPI
     public const long Years = 365 * Days; 
  
     /*** Constructor ***/ 
-    public EasyAPI(IMyGridTerminalSystem grid, IMyProgrammableBlock me, Action<string> echo, TimeSpan elapsedTime, string commandArgument = "$") 
+    public EasyAPI(IMyGridTerminalSystem grid, IMyProgrammableBlock me, Action<string> echo, TimeSpan elapsedTime, string commandArgument = "EasyCommand") 
     { 
         this.clock = this.start = DateTime.Now.Ticks; 
         this.delta = 0; 
@@ -54,7 +54,7 @@ public abstract class EasyAPI
         this.ElapsedTime = elapsedTime; 
         this.ArgumentActions = new Dictionary<string,List<Action>>(); 
         this.CommandActions = new Dictionary<string,List<Action<int, string[]>>>(); 
-        this.Events = new List<IEasyEvent>(); 
+        this.Events = new List<EasyEvent>(); 
         this.Schedule = new List<EasyInterval>(); 
         this.Intervals = new List<EasyInterval>(); 
         this.commands = new EasyCommands(this, commandArgument);
@@ -69,14 +69,14 @@ public abstract class EasyAPI
     { 
         for(int n = 0; n < Events.Count; n++) 
         { 
-            if(!Events[n].handle()) 
+            if(!(Events[n].handle)()) 
             { 
                 Events.Remove(Events[n]); 
             } 
         } 
     } 
  
-    public void AddEvent(IEasyEvent e) 
+    public void AddEvent(EasyEvent e) 
     { 
         Events.Add(e); 
     } 
@@ -202,7 +202,7 @@ public abstract class EasyAPI
             { 
                 long time = this.clock + this.Intervals[n].interval - (this.clock - this.Intervals[n].time); 
  
-                this.Intervals[n].action(); 
+                (this.Intervals[n].action)(); 
                 this.Intervals[n] = new EasyInterval(time, this.Intervals[n].interval, this.Intervals[n].action); // reset time interval 
             } 
         } 
@@ -212,7 +212,7 @@ public abstract class EasyAPI
         { 
             if(this.clock >= this.Schedule[n].time) 
             { 
-                this.Schedule[n].action(); 
+                (this.Schedule[n].action)(); 
                 Schedule.Remove(this.Schedule[n]); 
             } 
         } 
@@ -795,6 +795,31 @@ public class EasyBlocks
         else
             return output;
     }
+    
+    private bool EasyCompare(String op, String a, String b)
+    {
+        switch(op)
+        {
+            case "==":
+                return (a == b);
+            case "!=":
+                return (a != b);
+            case "~":
+                return a.Contains(b);
+            case "!~":
+                return !a.Contains(b);
+            case "R":
+                System.Text.RegularExpressions.Match m = (new System.Text.RegularExpressions.Regex(b)).Match(a);
+                while(m.Success)
+                {
+                    return true;
+                }
+                return false;
+            case "!R":
+                return !EasyCompare("R", a, b);
+        }
+        return false;
+    }
 }
 public struct EasyBlock
 {
@@ -1094,10 +1119,22 @@ public struct EasyBlock
         return a.Block == b.Block;
     }
 
+    public override bool Equals(object o)
+    {
+        return (EasyBlock)o == this;
+    }
+    
+    public override int GetHashCode()
+    {
+        return Block.GetHashCode();
+    }
+    
     public static bool operator !=(EasyBlock a, EasyBlock b)
     {
         return a.Block != b.Block;
     }
+    
+    
 }
 // Stores all items in matched block inventories for later filtering
 public class EasyInventory
@@ -1295,58 +1332,6 @@ public struct EasyMessage
         return text;
     }
 }
-abstract public class IEasyEvent
-{
-    public abstract bool handle();
-}
-public class EasyEvent : IEasyEvent 
-{ 
-    Func<EasyBlock,bool> op; // The comparison function 
- 
-    private EasyBlock obj; // Object to pass through to the callback when the event is triggered 
- 
-    private Func<EasyBlock,bool> callback; // What to call when the event occurs 
- 
-    public EasyEvent(EasyBlock obj, Func<EasyBlock,bool> op, Func<EasyBlock,bool> callback) 
-    { 
-        this.op = op; 
-        this.callback = callback; 
-        this.obj = obj; 
-    } 
- 
-    public override bool handle() 
-    { 
-        if(op((EasyBlock)obj)) 
-        { 
-            return callback((EasyBlock)obj); 
-        } 
- 
-        return true; 
-    } 
-} static public bool EasyCompare(String op, String a, String b)
-{
-    switch(op)
-    {
-        case "==":
-            return (a == b);
-        case "!=":
-            return (a != b);
-        case "~":
-            return a.Contains(b);
-        case "!~":
-            return !a.Contains(b);
-        case "R":
-            System.Text.RegularExpressions.Match m = (new System.Text.RegularExpressions.Regex(b)).Match(a);
-            while(m.Success)
-            {
-                return true;
-            }
-            return false;
-        case "!R":
-            return !EasyCompare("R", a, b);
-    }
-    return false;
-}
 /*** Commands ***/
 
 // Base EasyCommands class
@@ -1359,7 +1344,7 @@ public class EasyCommands
     
     /*** Constructors ***/
     
-    public EasyCommands(EasyAPI api, string command = "EasyAPI")
+    public EasyCommands(EasyAPI api, string command = "EasyCommand")
     {
         this.api = api;
         
@@ -1373,7 +1358,7 @@ public class EasyCommands
         return (argument < argv.Length);
     }
     
-    private void handle(int argc, string[] argv)
+    public void handle(int argc, string[] argv)
     {
         if(argc > 1)
         {
@@ -1562,4 +1547,29 @@ public class EasyCommands
         
         return argument;
     }
+}
+public class EasyEvent
+{ 
+    private Func<EasyBlock,bool> op; // The comparison function 
+ 
+    private EasyBlock obj; // Object to pass through to the callback when the event is triggered 
+ 
+    private Func<EasyBlock,bool> callback; // What to call when the event occurs 
+ 
+    public EasyEvent(EasyBlock obj, Func<EasyBlock,bool> op, Func<EasyBlock,bool> callback) 
+    { 
+        this.op = op; 
+        this.callback = callback; 
+        this.obj = obj; 
+    } 
+ 
+    public bool handle() 
+    { 
+        if((this.op)((EasyBlock)this.obj)) 
+        { 
+            return (this.callback)((EasyBlock)this.obj); 
+        } 
+ 
+        return true; 
+    } 
 }

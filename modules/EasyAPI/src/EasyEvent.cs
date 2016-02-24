@@ -1,6 +1,6 @@
-public class EasyEvent : IEasyEvent 
+public class EasyEvent
 { 
-    Func<EasyBlock,bool> op; // The comparison function 
+    private Func<EasyBlock,bool> op; // The comparison function 
  
     private EasyBlock obj; // Object to pass through to the callback when the event is triggered 
  
@@ -13,13 +13,13 @@ public class EasyEvent : IEasyEvent
         this.obj = obj; 
     } 
  
-    public override bool handle() 
+    public bool handle() 
     { 
-        if(op((EasyBlock)obj)) 
+        if((this.op)((EasyBlock)this.obj)) 
         { 
-            return callback((EasyBlock)obj); 
+            return (this.callback)((EasyBlock)this.obj); 
         } 
  
         return true; 
     } 
-} 
+}
