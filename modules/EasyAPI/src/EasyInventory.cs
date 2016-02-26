@@ -12,11 +12,11 @@ public class EasyInventory
         {
             EasyBlock Block = Blocks[i];
 
-            for(int j = 0; j < ((IMyInventoryOwner)Block.Block).InventoryCount; j++)
+            for(int j = 0; j < Block.Block.GetInventoryCount(); j++)
             {
-                IMyInventory Inventory = ((IMyInventoryOwner)Block.Block).GetInventory(j);
+                VRage.ModAPI.IMyInventory Inventory = Block.Block.GetInventory(j);
 
-                List<IMyInventoryItem> Items = Inventory.GetItems();
+                List<VRage.ModAPI.IMyInventoryItem> Items = Inventory.GetItems();
 
                 for(int k = 0; k < Items.Count; k++)
                 {

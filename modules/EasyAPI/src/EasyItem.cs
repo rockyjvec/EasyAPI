@@ -3,11 +3,11 @@ public struct EasyItem
 {
     private EasyBlock Block;
     public int InventoryIndex;
-    private IMyInventory Inventory;
+    private VRage.ModAPI.IMyInventory Inventory;
     public int ItemIndex;
-    private IMyInventoryItem Item;
+    private VRage.ModAPI.IMyInventoryItem Item;
 
-    public EasyItem(EasyBlock Block, int InventoryIndex, IMyInventory Inventory, int ItemIndex, IMyInventoryItem Item)
+    public EasyItem(EasyBlock Block, int InventoryIndex, VRage.ModAPI.IMyInventory Inventory, int ItemIndex, VRage.ModAPI.IMyInventoryItem Item)
     {
         this.Block = Block;
         this.InventoryIndex = InventoryIndex;
@@ -32,7 +32,7 @@ public struct EasyItem
         // In the future you will be able to sort EasyBlocks and use this to prioritize where the items get moved.
         for(int i = 0; i < Blocks.Count(); i++)
         {
-            this.Inventory.TransferItemTo(((IMyInventoryOwner)Blocks.GetBlock(i).Block).GetInventory(Inventory), ItemIndex);
+            this.Inventory.TransferItemTo(Blocks.GetBlock(i).Block.GetInventory(Inventory), ItemIndex);
         }
     }
 }
