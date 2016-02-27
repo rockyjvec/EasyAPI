@@ -150,7 +150,7 @@ public class EasyMenu
 }
 
 // Holds menu item info
-public class EasyMenuItemClass
+public class EasyMenuItem : IComparable
 {
     /*** Private Properties ***/
     
@@ -159,24 +159,17 @@ public class EasyMenuItemClass
 
     /*** Public Properties ***/
     
-    public long uid; // Unique id of this item for comparisons 
     public string Text; // The text that shows up in the menu for this item
     public List<EasyMenuItem> children; // The children items of this item
-    
-    public static long currentUid = 0; // Used to generate unique ids for each item in a menu
     
     /*** Constructors ***/
 
     // Standard constructor
-    public EasyMenuItemClass(string text, EasyMenuItem[] children = null, Func<EasyMenuItem, bool> chooseAction = null, Func<EasyMenuItem, string> textAction = null)
+    public EasyMenuItem(string text, EasyMenuItem[] children = null, Func<EasyMenuItem, bool> chooseAction = null, Func<EasyMenuItem, string> textAction = null)
     {
-        // increment unique id
-        EasyMenuItemClass.currentUid++;
-        
         this.Text = text;
         this.chooseAction = chooseAction;
         this.textAction = textAction;
-        this.uid = EasyMenuItemClass.currentUid;
 
         // Initialize children
         if(children == null)
@@ -194,6 +187,9 @@ public class EasyMenuItemClass
             this.textAction = get_text;    
         }
     }
+
+    public EasyMenuItem(string text, Func<EasyMenuItem, bool> chooseAction, Func<EasyMenuItem, string> textAction = null) : this(text, null, chooseAction, textAction) {}
+    public EasyMenuItem(Func<EasyMenuItem, string> textAction, Func<EasyMenuItem, bool> chooseAction = null) : this("", chooseAction, textAction) {}
     
     /*** Methods ***/
 
@@ -204,13 +200,13 @@ public class EasyMenuItemClass
     }
     
     // Get menu text
-    public string GetText(EasyMenuItem item)
+    public string GetText()
     {
-        return this.textAction(item);
+        return this.textAction(this);
     }
     
     // True means go into sub menu if it exists, false means stay where you are
-    public bool doAction(EasyMenuItem item)
+    public bool doAction()
     {
         if(this.chooseAction == null)
         {
@@ -218,7 +214,7 @@ public class EasyMenuItemClass
         }
         else
         {
-            return this.chooseAction(item);
+            return this.chooseAction(this);
         }
     }
     
@@ -234,41 +230,16 @@ public class EasyMenuItemClass
         this.textAction = textAction;
     }
 
-}
-
-// This is to work around an issue in the PB where you can't use a user defined class in a List.  It basically just maps the public methods/properties onto the EasyMenuItemClass class
-public struct EasyMenuItem : IComparable<EasyMenuItem>
-{
-    /*** Private Properties ***/
-    
-    private EasyMenuItemClass item;
-    
-    /*** Public Properties ***/
-    
-    public long uid { get {return this.item.uid;} }
-    public string Text { get {return this.item.Text;} } // The text that shows up in the menu for this item
-    public List<EasyMenuItem> children { get {return this.item.children;} set {this.item.children = value;} } // The children items of this item
-
-    /*** Constructors ***/
-    
-    public EasyMenuItem(string text, EasyMenuItem[] children = null, Func<EasyMenuItem, bool> chooseAction = null, Func<EasyMenuItem, string> textAction = null)
+    public int CompareTo(object obj) 
     {
-        this.item = new EasyMenuItemClass(text, children, chooseAction, textAction);
-    }
-    
-    public EasyMenuItem(string text, Func<EasyMenuItem, bool> chooseAction, Func<EasyMenuItem, string> textAction = null) : this(text, null, chooseAction, textAction) {}
-    public EasyMenuItem(Func<EasyMenuItem, string> textAction, Func<EasyMenuItem, bool> chooseAction = null) : this("", chooseAction, textAction) {}
-    
-    /*** Methods ***/
+        if (obj == null) return 1;
 
-    public string GetText() {return this.item.GetText(this);}
-    public bool doAction() {return this.item.doAction(this);}
-    public void SetText(string text) {this.item.SetText(text);}
-    public void SetTextAction(Func<EasyMenuItem, string> textAction) {this.item.SetTextAction(textAction);}
-    
-    /*** Operators ***/
-    
-    public static bool operator ==(EasyMenuItem x, EasyMenuItem y) {return x.uid == y.uid;}    
-    public static bool operator !=(EasyMenuItem x, EasyMenuItem y) {return !(x == y);}    
-    public int CompareTo(EasyMenuItem otherItem) {return this.GetText().CompareTo(otherItem.GetText());}
+        EasyMenuItem otherItem = obj as EasyMenuItem;
+        
+        if (otherItem != null) 
+            return this.GetText().CompareTo(otherItem.GetText());
+        else
+           throw new ArgumentException("Object is not a EasyMenuItem");
+    }
+
 }

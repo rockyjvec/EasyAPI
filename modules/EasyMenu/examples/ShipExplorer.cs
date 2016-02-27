@@ -52,16 +52,16 @@ public class Example : EasyAPI
                                     }));
                                 }
                                 
-                                //blockItem.children.Sort();
+                                blockItem.children.Sort();
                                 return true;
                             }));
                         }
                         
-                        //typeItem.children.Sort();
+                        typeItem.children.Sort();
                         return true;
                     }));
                 }
-                //actionsItem.children.Sort();                
+                actionsItem.children.Sort();                
                 return true;
             })
         });
