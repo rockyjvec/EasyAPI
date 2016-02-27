@@ -3,11 +3,11 @@ public struct EasyItem
 {
     private EasyBlock Block;
     public int InventoryIndex;
-    private VRage.ModAPI.IMyInventory Inventory;
+    private VRage.ModAPI.Ingame.IMyInventory Inventory;
     public int ItemIndex;
-    private VRage.ModAPI.IMyInventoryItem Item;
+    private VRage.ModAPI.Ingame.IMyInventoryItem Item;
 
-    public EasyItem(EasyBlock Block, int InventoryIndex, VRage.ModAPI.IMyInventory Inventory, int ItemIndex, VRage.ModAPI.IMyInventoryItem Item)
+    public EasyItem(EasyBlock Block, int InventoryIndex, VRage.ModAPI.Ingame.IMyInventory Inventory, int ItemIndex, VRage.ModAPI.Ingame.IMyInventoryItem Item)
     {
         this.Block = Block;
         this.InventoryIndex = InventoryIndex;

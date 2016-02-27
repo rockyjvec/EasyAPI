@@ -607,7 +607,7 @@ class Acorn
     return finishOp(_multiplyModulo, 1);
   }
 
-  void readToken_pipe_amp(code) { // '|&'
+  void readToken_pipe_amp(char code) { // '|&'
     var next = input.charCodeAt(tokPos + 1);
     if (next == code) return finishOp(code == 124 ? _logicalOR : _logicalAND, 2);
     if (next == 61) return finishOp(_assign, 2);
@@ -620,7 +620,7 @@ class Acorn
     return finishOp(_bitwiseXOR, 1);
   }
 
-  void readToken_plus_min(code) { // '+-'
+  void readToken_plus_min(char code) { // '+-'
     var next = input.charCodeAt(tokPos + 1);
     if (next == code) {
       if (next == 45 && input.charCodeAt(tokPos + 2) == 62 &&
@@ -637,7 +637,7 @@ class Acorn
     return finishOp(_plusMin, 1);
   }
 
-  void readToken_lt_gt(code) { // '<>'
+  void readToken_lt_gt(char code) { // '<>'
     var next = input.charCodeAt(tokPos + 1);
     var size = 1;
     if (next == code) {
@@ -658,13 +658,13 @@ class Acorn
     return finishOp(_relational, size);
   }
 
-  void readToken_eq_excl(code) { // '=!'
+  void readToken_eq_excl(char code) { // '=!'
     var next = input.charCodeAt(tokPos + 1);
     if (next == 61) return finishOp(_equality, input.charCodeAt(tokPos + 2) == 61 ? 3 : 2);
     return finishOp(code == 61 ? _eq : _prefix, 1);
   }
 
-  void getTokenFromCode(code) {
+  void getTokenFromCode(char code) {
     switch(code) {
       // The interpretation of a dot depends on whether it is followed
       // by a digit.
@@ -789,7 +789,7 @@ class Acorn
   // were read, the integer value otherwise. When `len` is given, this
   // will return `null` unless the integer has exactly `len` digits.
 
-  int readInt(radix, len) {
+  int readInt(int radix, int len) {
     var start = tokPos, total = 0;
     for (var i = 0, e = len == null ? Infinity : len; i < e; ++i) {
       var code = input.charCodeAt(tokPos), val;
@@ -816,7 +816,7 @@ class Acorn
 
   // Read an integer, octal integer, or floating-point number.
 
-  AcornToken readNumber(startsWithDot) {
+  AcornToken readNumber(bool startsWithDot) {
     var start = tokPos, isFloat = false, octal = input.charCodeAt(tokPos) == 48;
     if (!startsWithDot && readInt(10) == null) raise(start, "Invalid number");
     if (input.charCodeAt(tokPos) == 46) {
@@ -843,7 +843,7 @@ class Acorn
 
   // Read a string value, interpreting backslash-escapes.
 
-  AcornToken readString(quote) {
+  AcornToken readString(char quote) {
     tokPos++;
     var out = "";
     for (;;) {
@@ -893,7 +893,7 @@ class Acorn
 
   // Used to read character escape sequences ('\x', '\u', '\U').
 
-  int readHexChar(len) {
+  int readHexChar(int len) {
     var n = readInt(16, len);
     if (n == null) raise(tokStart, "Bad character escape sequence");
     return n;
@@ -903,7 +903,7 @@ class Acorn
   // contained any escape sequences. This is needed because words with
   // escape sequences must not be interpreted as keywords.
 
-  var containsEsc;
+  bool containsEsc;
 
   // Read an identifier, and return it as a string. Sets `containsEsc`
   // to whether the word contained a '\u' escape.
@@ -1004,22 +1004,38 @@ class Acorn
 
   // Start an AST node, attaching a start offset.
 
-  function node_t() {
-    this.type = null;
-    this.start = tokStart;
-    this.end = null;
+  class node_t
+  {
+      public object type;
+      public int start;
+      public int end;
+      
+      public void node_t(int tokStart)
+      {
+          this.type = null;
+          this.start = tokStart;
+          this.end = null;
+      }
   }
 
-  function node_loc_t() {
-    this.start = tokStartLoc;
-    this.end = null;
-    if (sourceFile !== null) this.source = sourceFile;
+  class node_loc_t
+  {
+      public int start;
+      public int end;
+      public string source;
+      
+      public void note_loc_t(int tokStartLoc, string sourceFile)
+      {
+        this.start = tokStartLoc;
+        this.end = null;
+        if (sourceFile !== null) this.source = sourceFile;
+      }
   }
 
-  function startNode() {
-    var node = new node_t();
+  node_t startNode() {
+    var node = new node_t(tokStart);
     if (options.locations)
-      node.loc = new node_loc_t();
+      node.loc = new node_loc_t(tokStartLoc, sourceFile);
     if (options.directSourceFile)
       node.sourceFile = options.directSourceFile;
     if (options.ranges)
@@ -1031,7 +1047,7 @@ class Acorn
   // the start of another node. For example, a binary operator node is
   // only started after its left-hand side has already been parsed.
 
-  function startNodeFrom(other) {
+  node_t startNodeFrom(node_t other) {
     var node = new node_t();
     node.start = other.start;
     if (options.locations) {
@@ -1046,7 +1062,7 @@ class Acorn
 
   // Finish an AST node, adding `type` and `end` properties.
 
-  function finishNode(node, type) {
+  node_t finishNode(node_t node, object type) {
     node.type = type;
     node.end = lastEnd;
     if (options.locations)
@@ -1058,7 +1074,7 @@ class Acorn
 
   // Test whether a statement node is the string literal `"use strict"`.
 
-  function isUseStrict(stmt) {
+  bool isUseStrict(stmt) {
     return options.ecmaVersion >= 5 && stmt.type == "ExpressionStatement" &&
       stmt.expression.type == "Literal" && stmt.expression.value == "use strict";
   }
@@ -1066,7 +1082,7 @@ class Acorn
   // Predicate that tests whether the next token is of the given
   // type, and if yes, consumes it as a side effect.
 
-  function eat(type) {
+  bool eat(type) {
     if (tokType == type) {
       next();
       return true;
@@ -1075,7 +1091,7 @@ class Acorn
 
   // Test whether a semicolon can be inserted at the current position.
 
-  function canInsertSemicolon() {
+  bool canInsertSemicolon() {
     return !options.strictSemicolons &&
       (tokType == _eof || tokType == _braceR || newline.test(input.slice(lastEnd, tokStart)));
   }
@@ -1083,28 +1099,28 @@ class Acorn
   // Consume a semicolon, or, failing that, see if we are allowed to
   // pretend that there is a semicolon at this position.
 
-  function semicolon() {
+  void semicolon() {
     if (!eat(_semi) && !canInsertSemicolon()) unexpected();
   }
 
   // Expect a token of a given type. If found, consume it, otherwise,
   // raise an unexpected token error.
 
-  function expect(type) {
+  void expect(type) {
     if (tokType == type) next();
     else unexpected();
   }
 
   // Raise an unexpected token error.
 
-  function unexpected() {
+  void unexpected() {
     raise(tokStart, "Unexpected token");
   }
 
   // Verify that a node is an lval — something that can be assigned
   // to.
 
-  function checkLVal(expr) {
+  void checkLVal(object expr) {
     if (expr.type !== "Identifier" && expr.type !== "MemberExpression")
       raise(expr.start, "Assigning to rvalue");
     if (strict && expr.type == "Identifier" && isStrictBadIdWord(expr.name))
@@ -1118,7 +1134,7 @@ class Acorn
   // `program` argument.  If present, the statements will be appended
   // to its body instead of creating a new node.
 
-  function parseTopLevel(program) {
+  node_t parseTopLevel(node_t program) {
     lastStart = lastEnd = tokPos;
     if (options.locations) lastEndLoc = new line_loc_t;
     inFunction = strict = null;
@@ -1136,7 +1152,7 @@ class Acorn
     return finishNode(node, "Program");
   }
 
-  var loopLabel = {kind: "loop"}, switchLabel = {kind: "switch"};
+  var loopLabel = new {kind = "loop"}, switchLabel = new {kind = "switch"};
 
   // Parse a single statement.
   //
@@ -1145,7 +1161,7 @@ class Acorn
   // `if (foo) /blah/.exec(foo);`, where looking at the previous token
   // does not help.
 
-  function parseStatement() {
+  node_t parseStatement() {
     if (tokType == _slash || tokType == _assign && tokVal == "/=")
       readToken(true);
 
@@ -1362,7 +1378,7 @@ class Acorn
   // Used for constructs like `switch` and `if` that insist on
   // parentheses around their expression.
 
-  function parseParenExpression() {
+  string parseParenExpression() {
     expect(_parenL);
     var val = parseExpression();
     expect(_parenR);
@@ -1373,7 +1389,7 @@ class Acorn
   // strict"` declarations when `allowStrict` is true (used for
   // function bodies).
 
-  function parseBlock(allowStrict) {
+  node_t parseBlock(allowStrict) {
     var node = startNode(), first = true, strict = false, oldStrict;
     node.body = [];
     expect(_braceL);
@@ -1394,7 +1410,7 @@ class Acorn
   // `parseStatement` will already have parsed the init statement or
   // expression.
 
-  function parseFor(node, init) {
+  node_t parseFor(node, init) {
     node.init = init;
     expect(_semi);
     node.test = tokType == _semi ? null : parseExpression();
@@ -1408,7 +1424,7 @@ class Acorn
 
   // Parse a `for`/`in` loop.
 
-  function parseForIn(node, init) {
+  node_t parseForIn(node, init) {
     node.left = init;
     node.right = parseExpression();
     expect(_parenR);
@@ -1419,7 +1435,7 @@ class Acorn
 
   // Parse a list of variable declarations.
 
-  function parseVar(node, noIn) {
+  node_t parseVar(node, noIn) {
     node.declarations = [];
     node.kind = "var";
     for (;;) {
@@ -1446,7 +1462,7 @@ class Acorn
   // sequences (in argument lists, array literals, or object literals)
   // or the `in` operator (in for loops initalization expressions).
 
-  function parseExpression(noComma, noIn) {
+  string parseExpression(bool noComma, bool noIn) {
     var expr = parseMaybeAssign(noIn);
     if (!noComma && tokType == _comma) {
       var node = startNodeFrom(expr);
@@ -1460,7 +1476,7 @@ class Acorn
   // Parse an assignment expression. This includes applications of
   // operators like `+=`.
 
-  function parseMaybeAssign(noIn) {
+  string parseMaybeAssign(bool noIn) {
     var left = parseMaybeConditional(noIn);
     if (tokType.isAssign) {
       var node = startNodeFrom(left);
@@ -1476,7 +1492,7 @@ class Acorn
 
   // Parse a ternary conditional (`?:`) operator.
 
-  function parseMaybeConditional(noIn) {
+  string parseMaybeConditional(bool noIn) {
     var expr = parseExprOps(noIn);
     if (eat(_question)) {
       var node = startNodeFrom(expr);
@@ -1491,7 +1507,7 @@ class Acorn
 
   // Start the precedence parser.
 
-  function parseExprOps(noIn) {
+  string parseExprOps(bool noIn) {
     return parseExprOp(parseMaybeUnary(), -1, noIn);
   }
 
@@ -1501,7 +1517,7 @@ class Acorn
   // defer further parser to one of its callers when it encounters an
   // operator that has a lower precedence than the set it is parsing.
 
-  function parseExprOp(left, minPrec, noIn) {
+  string parseExprOp(string left, int minPrec, bool noIn) {
     var prec = tokType.binop;
     if (prec != null && (!noIn || tokType !== _in)) {
       if (prec > minPrec) {
@@ -1520,7 +1536,7 @@ class Acorn
 
   // Parse unary operators, both prefix and postfix.
 
-  function parseMaybeUnary() {
+  node_t parseMaybeUnary() {
     if (tokType.prefix) {
       var node = startNode(), update = tokType.isUpdate;
       node.operator = tokVal;
@@ -1549,11 +1565,11 @@ class Acorn
 
   // Parse call, dot, and `[]`-subscript expressions.
 
-  function parseExprSubscripts() {
+  string parseExprSubscripts() {
     return parseSubscripts(parseExprAtom());
   }
 
-  function parseSubscripts(base, noCalls) {
+  node_t parseSubscripts(node_t base, bool noCalls) {
     if (eat(_dot)) {
       var node = startNodeFrom(base);
       node.object = base;
@@ -1580,7 +1596,7 @@ class Acorn
   // `new`, or an expression wrapped in punctuation like `()`, `[]`,
   // or `{}`.
 
-  function parseExprAtom() {
+  node_t parseExprAtom() {
     switch (tokType) {
     case _this:
       var node = startNode();
@@ -1643,7 +1659,7 @@ class Acorn
   // to be a `[]` or dot subscript expression, but not a call — at
   // least, not without wrapping it in parentheses. Thus, it uses the
 
-  function parseNew() {
+  node_t parseNew() {
     var node = startNode();
     next();
     node.callee = parseSubscripts(parseExprAtom(), true);
@@ -1654,7 +1670,7 @@ class Acorn
 
   // Parse an object literal.
 
-  function parseObj() {
+  node_t parseObj() {
     var node = startNode(), first = true, sawGetSet = false;
     node.properties = [];
     next();
@@ -1697,7 +1713,7 @@ class Acorn
     return finishNode(node, "ObjectExpression");
   }
 
-  function parsePropertyName() {
+  node_t parsePropertyName() {
     if (tokType == _num || tokType == _string) return parseExprAtom();
     return parseIdent(true);
   }
@@ -1705,7 +1721,7 @@ class Acorn
   // Parse a function declaration or literal (depending on the
   // `isStatement` parameter).
 
-  function parseFunction(node, isStatement) {
+  node_t parseFunction(node, isStatement) {
     if (tokType == _name) node.id = parseIdent();
     else if (isStatement) unexpected();
     else node.id = null;
@@ -1746,7 +1762,7 @@ class Acorn
   // nothing in between them to be parsed as `null` (which is needed
   // for array literals).
 
-  function parseExprList(close, allowTrailingComma, allowEmpty) {
+  node_t parseExprList(object close, bool allowTrailingComma, bool allowEmpty) {
     var elts = [], first = true;
     while (!eat(close)) {
       if (!first) {
@@ -1764,14 +1780,12 @@ class Acorn
   // when parsing properties), it will also convert keywords into
   // identifiers.
 
-  function parseIdent(liberal) {
+  function parseIdent(bool liberal) {
     var node = startNode();
     node.name = tokType == _name ? tokVal : (liberal && !options.forbidReserved && tokType.keyword) || unexpected();
     tokRegexpAllowed = false;
     next();
     return finishNode(node, "Identifier");
   }
-
-});
 
 }

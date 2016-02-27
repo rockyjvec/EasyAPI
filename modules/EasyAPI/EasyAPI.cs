@@ -1152,9 +1152,9 @@ public class EasyInventory
 
             for(int j = 0; j < Block.Block.GetInventoryCount(); j++)
             {
-                VRage.ModAPI.IMyInventory Inventory = Block.Block.GetInventory(j);
+                VRage.ModAPI.Ingame.IMyInventory Inventory = Block.Block.GetInventory(j);
 
-                List<VRage.ModAPI.IMyInventoryItem> Items = Inventory.GetItems();
+                List<VRage.ModAPI.Ingame.IMyInventoryItem> Items = Inventory.GetItems();
 
                 for(int k = 0; k < Items.Count; k++)
                 {
@@ -1236,11 +1236,11 @@ public struct EasyItem
 {
     private EasyBlock Block;
     public int InventoryIndex;
-    private VRage.ModAPI.IMyInventory Inventory;
+    private VRage.ModAPI.Ingame.IMyInventory Inventory;
     public int ItemIndex;
-    private VRage.ModAPI.IMyInventoryItem Item;
+    private VRage.ModAPI.Ingame.IMyInventoryItem Item;
 
-    public EasyItem(EasyBlock Block, int InventoryIndex, VRage.ModAPI.IMyInventory Inventory, int ItemIndex, VRage.ModAPI.IMyInventoryItem Item)
+    public EasyItem(EasyBlock Block, int InventoryIndex, VRage.ModAPI.Ingame.IMyInventory Inventory, int ItemIndex, VRage.ModAPI.Ingame.IMyInventoryItem Item)
     {
         this.Block = Block;
         this.InventoryIndex = InventoryIndex;
