@@ -1495,22 +1495,22 @@ public class EasyCommands
                             if(!checkArg(argument, argv)) break;
                             blocks = blocks.NotNamedLike(argv[argument]);
                             break;
-                        case "InGroupNamed":
+                        case "InGroupsNamed":
                             argument++;
                             if(!checkArg(argument, argv)) break;
                             blocks = blocks.InGroupsNamed(argv[argument]);
                             break;
-                        case "InGroupNamedLike":
+                        case "InGroupsNamedLike":
                             argument++;
                             if(!checkArg(argument, argv)) break;
                             blocks = blocks.InGroupsNamedLike(argv[argument]);
                             break;
-                        case "InGroupNotNamed":
+                        case "InGroupsNotNamed":
                             argument++;
                             if(!checkArg(argument, argv)) break;
                             blocks = blocks.InGroupsNotNamed(argv[argument]);
                             break;
-                        case "InGroupNotNamedLike":
+                        case "InGroupsNotNamedLike":
                             argument++;
                             if(!checkArg(argument, argv)) break;
                             blocks = blocks.InGroupsNotNamedLike(argv[argument]);

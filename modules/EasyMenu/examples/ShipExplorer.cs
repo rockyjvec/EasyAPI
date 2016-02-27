@@ -2,7 +2,6 @@ public class Example : EasyAPI
 {
     EasyLCD lcd;
 
-    EasyBlocks timer;
     EasyBlocks screen;
     
     EasyMenu menu;
@@ -24,9 +23,8 @@ public class Example : EasyAPI
                         types.Add(block.Type());
                     }
                 }
-                
+
                 types.Sort();
-                
                 actionsItem.children.Clear();
                 
                 for(int n = 0; n < types.Count; n++)
@@ -34,7 +32,6 @@ public class Example : EasyAPI
                     actionsItem.children.Add(new EasyMenuItem(types[n], delegate(EasyMenuItem typeItem) {
                      
                         typeItem.children.Clear();
-
                         var blocks = Blocks.OfType(typeItem.Text);
                         for(int o = 0; o < blocks.Count(); o++)
                         {
@@ -55,65 +52,55 @@ public class Example : EasyAPI
                                     }));
                                 }
                                 
-                                blockItem.children.Sort();
+                                //blockItem.children.Sort();
                                 return true;
                             }));
                         }
                         
-                        typeItem.children.Sort();
+                        //typeItem.children.Sort();
                         return true;
                     }));
                 }
-                
-                actionsItem.children.Sort();                
+                //actionsItem.children.Sort();                
                 return true;
             })
         });
         
         // Get blocks
-        this.timer = Blocks.Named("MenuTimer").FindOrFail("MenuTimer not found!");       
         this.screen = Blocks.Named("MenuLCD").FindOrFail("MenuLCD not found!");
         
         this.lcd = new EasyLCD(this.screen);
         
-        Every(100 * Milliseconds, doUpdates); // Run doUpdates every 100 milliseconds  
+        // Handle Arguments 
+        On("Up", delegate() { 
+            this.menu.Up(); 
+            doUpdates();            
+        }); 
+ 
+        On("Down", delegate() { 
+            this.menu.Down(); 
+            doUpdates();            
+        }); 
+ 
+        On("Choose", delegate() { 
+            this.menu.Choose(); 
+            doUpdates();            
+        }); 
+         
+        On("Back", delegate() { 
+            this.menu.Back(); 
+            doUpdates();            
+        }); 
+         
+        On("Update", delegate() { 
+            doUpdates(); 
+        }); 
     }
 
-    // Runs every 100 milliseconds
     public void doUpdates()
     {
-        // Get value of change interval slider from LCD screen
-        Single slider = screen.GetProperty<Single>("ChangeIntervalSlider"); 
-
-        if(slider < 5) 
-        {
-            menu.Up();
-            screen.SetProperty<Single>("ChangeIntervalSlider", (Single)5);
-        }
-
-        if(slider > 5)
-        {
-            menu.Down();
-            screen.SetProperty<Single>("ChangeIntervalSlider", (Single)5);
-        }        
-
-        // Get value of trigger delay from timer block
-        Single delay = timer.GetProperty<Single>("TriggerDelay");
-
-        if(delay > 5)  
-        { 
-            menu.Choose();
-            timer.SetProperty<Single>("TriggerDelay", (Single)5);
-        } 
-        if(delay < 5) 
-        { 
-            menu.Back();
-            timer.SetProperty<Single>("TriggerDelay", (Single)5);
-        } 
-
-        // Clear LCD and display menu
         lcd.clear();
         lcd.update();
-        lcd.SetText(menu.Draw(70, 7));
+        lcd.SetText(menu.Draw());
     }    
 } 
