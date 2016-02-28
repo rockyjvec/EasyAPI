@@ -57,7 +57,7 @@ public abstract class EasyAPI
         this.Events = new List<EasyEvent>(); 
         this.Schedule = new List<EasyInterval>(); 
         this.Intervals = new List<EasyInterval>(); 
-        this.commands = new EasyCommands(this, commandArgument);
+        this.commands = new EasyCommands(this);
  
         // Get the Programmable Block that is running this script (thanks to LordDevious and LukeStrike) 
         this.Self = new EasyBlock(me); 
@@ -166,7 +166,11 @@ public abstract class EasyAPI
                         this.CommandActions[argv[0]][n](argc, argv); 
                     }                 
                 }
-            } 
+            }
+            else if(argument.Substring(0, 12) == "EasyCommand ")
+            {
+                this.commands.handle(argument.Substring(12));
+            }
         }
 
         long now = DateTime.Now.Ticks; 

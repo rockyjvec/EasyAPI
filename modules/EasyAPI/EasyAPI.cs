@@ -57,7 +57,7 @@ public abstract class EasyAPI
         this.Events = new List<EasyEvent>(); 
         this.Schedule = new List<EasyInterval>(); 
         this.Intervals = new List<EasyInterval>(); 
-        this.commands = new EasyCommands(this, commandArgument);
+        this.commands = new EasyCommands(this);
  
         // Get the Programmable Block that is running this script (thanks to LordDevious and LukeStrike) 
         this.Self = new EasyBlock(me); 
@@ -166,7 +166,11 @@ public abstract class EasyAPI
                         this.CommandActions[argv[0]][n](argc, argv); 
                     }                 
                 }
-            } 
+            }
+            else if(argument.Substring(0, 12) == "EasyCommand ")
+            {
+                this.commands.handle(argument.Substring(12));
+            }
         }
 
         long now = DateTime.Now.Ticks; 
@@ -622,6 +626,16 @@ public class EasyBlocks
         return this;
     }
 
+    public EasyBlocks Run(EasyAPI api, string type = "public")
+    {
+        for(int i = 0; i < this.Blocks.Count; i++)
+        {
+            this.Blocks[i].Run(api, type);
+        }
+        
+        return this;
+    }
+    
     public EasyBlocks SendMessage(EasyMessage message)
     {
         for(int i = 0; i < this.Blocks.Count; i++)
@@ -1036,7 +1050,51 @@ public struct EasyBlock
 
         return this;
     }
+    
+    public EasyBlock Run(EasyAPI api, string type = "public")
+    {
+        var cmd = new EasyCommands(api);
+        switch(type)
+        {
+            case "private":
+                cmd.handle(this.GetPrivateText());                    
+                break;  
+            default:
+                cmd.handle(this.GetPublicText());                    
+                break;
+        }
+        
+        return this;
+    }
 
+    public string GetPublicText()
+    {
+        string ret = "";
+        
+        IMyTextPanel textPanel = Block as IMyTextPanel;
+
+        if(textPanel != null)
+        {
+            ret = textPanel.GetPublicText();
+        }
+        
+        return ret;
+    }
+    
+    public string GetPrivateText()
+    {
+        string ret = "";
+        
+        IMyTextPanel textPanel = Block as IMyTextPanel;
+
+        if(textPanel != null)
+        {
+            ret = textPanel.GetPrivateText();
+        }
+        
+        return ret;
+    }
+    
     public EasyBlock WritePublicText(string text)
     {
         IMyTextPanel textPanel = Block as IMyTextPanel;
@@ -1341,211 +1399,249 @@ public class EasyCommands
     
     private EasyAPI api; // The selected menu item (child)
     private EasyBlocks blocks;
+
+    private int pos = 0;
+    private string text = "";
     
     /*** Constructors ***/
     
-    public EasyCommands(EasyAPI api, string command = "EasyCommand")
+    public EasyCommands(EasyAPI api)
     {
         this.api = api;
-        
-        api.OnCommand(command, this.handle);
     }
     
     /*** Private Methods ***/
     
-    private bool checkArg(int argument, string[] argv)
+    public void handle(string text)
     {
-        return (argument < argv.Length);
-    }
-    
-    public void handle(int argc, string[] argv)
-    {
-        if(argc > 1)
+        this.pos = 0;
+        this.text = text;
+
+        while(pos < text.Length)
         {
-            try
-            {
-                this.blocks = null;
-                handleCommand(1, argv);                
-            }
-            catch(IndexOutOfRangeException e)
-            {
-                return;
-            }
+            doCommand();
+            pos++;
         }
     }
     
-    private void handleCommand(int argument, string[] argv)
+    private void failure(string message)
     {
-        while(checkArg(argument, argv))
+        throw new Exception("EasyCommand Error: " + message);
+    }
+    
+    private bool isWhitespace(char c)
+    {
+        switch((int)c)
         {
-            switch(argv[argument])
+            case 9:
+            case 10:
+            case 11:
+            case 12:
+            case 13:
+            case 32:
+                return true;
+        }
+        return false;
+    }
+    
+    private bool isAlphanum(char c)
+    {
+        if((48 <= c && c <= 57) || (97 <= c && c <= 122) || (65 <= c && c <= 90))
+            return true;
+        else
+            return false;
+    }
+    
+    private void skipWhitespace()
+    {
+        while(pos < text.Length && isWhitespace(text[pos]))
+        {
+            pos++;
+        }
+    }
+    
+    private string getIdentifier()
+    {
+        string identifier = "";
+        while(pos < text.Length && isAlphanum(text[pos]))
+        {
+            identifier += text[pos];
+            pos++;
+        }
+        return identifier;        
+    }
+    
+    private string getParm()
+    {
+        string param = "";
+        skipWhitespace();
+        if(pos < text.Length && text[pos] == '(')
+        {
+            pos++;
+            skipWhitespace();
+            if(pos < text.Length && text[pos] == '"')
+            {
+                pos++;
+                while(pos < text.Length)
+                {
+                    if(text[pos] == '"')
+                    {
+                        pos++;
+                        break;
+                    }
+                    else if(text[pos] == '\\' && pos + 1 < text.Length && text[pos + 1] == '"') 
+                    {
+                        param += '"';     
+                        pos++;
+                    }
+                    else
+                    {
+                        param += text[pos];
+                    }
+                    pos++;
+                }
+            }
+            skipWhitespace();
+            
+            if(pos < text.Length && text[pos]== ')')
+            {
+                pos++;
+            }
+        }
+        
+        return param;
+    }
+    
+    private void doCommand()
+    {
+        while(pos < text.Length && text[pos] != ';')
+        {
+            skipWhitespace();
+            string command = getIdentifier();
+            string parm = "";
+            EasyBlocks blks;
+            EasyCommands cmd;
+            
+            switch(command)
             {
                 case "Echo":
-                    argument = handleEcho(argument + 1, argv);
+                    parm = getParm();
+                    api.Echo(parm);
                     break;
                 case "Blocks":
-                    argument = handleBlocks(argument + 1, argv);
+                    api.Refresh();
+                    this.blocks = api.Blocks;
                     break;
-                default: // By default, use argument as TerminalBlock type command
-                    this.blocks = api.Blocks.OfType(argv[argument]);
-                    argument = handleBlocks(argument + 1, argv);
+                /*** Actions ***/
+                case "ApplyAction":
+                    parm = getParm();
+                    blocks.ApplyAction(parm);
                     break;
-            }
-        }
-    }
-    
-    private int handleEcho(int argument, string[] argv)
-    {
-        while(checkArg(argument, argv))
-        {
-            api.Echo(argv[argument]);
-            argument++;
-        }
-        
-        return argument;
-    }
-    
-    private int handleBlocks(int argument, string[] argv)
-    {
-        if(this.blocks == null)
-        {
-            api.Refresh();
-            this.blocks = api.Blocks;
-        }
-        
-        while(checkArg(argument, argv))
-        {
-            string filter = argv[argument];
-            switch(filter[0])
-            {
-                case '~':
-                    blocks = blocks.NamedLike(filter.Substring(1));
+                case "WritePublicText":
+                    parm = getParm();
+                    blocks.WritePublicText(parm);
                     break;
-                case '!':
-                    blocks = blocks.NotNamed(filter.Substring(1));
+                case "WritePrivateText":
+                    parm = getParm();
+                    blocks.WritePrivateText(parm);
                     break;
-                case '*':
+                case "AppendPublicText":
+                    parm = getParm();
+                    blocks.AppendPublicText(parm);
+                    break;
+                case "AppendPrivateText":
+                    parm = getParm();
+                    blocks.AppendPrivateText(parm);
+                    break;
+                case "On":
+                    parm = getParm();
+                    blocks.On();
+                    break;
+                case "Off":
+                    parm = getParm();
+                    blocks.Off();
+                    break;
+                case "Toggle":
+                    parm = getParm();
+                    blocks.Toggle();
+                    break;
+                case "DebugDump":
+                    parm = getParm();
+                    blocks.DebugDump();
+                    break;
+                case "DebugDumpActions":
+                    parm = getParm();
+                    blocks.DebugDumpActions();
+                    break;
+                case "DebugDumpProperties":
+                    parm = getParm();
+                    blocks.DebugDumpActions();
+                    break;
+                case "Run":
+                    parm = getParm();
+                    blocks.Run(api, parm);
+                    break;
+
+                /*** Filters ***/
+                case "Named":
+                    parm = getParm();
+                    blocks = blocks.Named(parm);
+                    break;
+                case "NamedLike":
+                    parm = getParm();
+                    blocks = blocks.NamedLike(parm);
+                    break;
+                case "NotNamed":
+                    parm = getParm();
+                    blocks = blocks.NotNamed(parm);
+                    break;
+                case "NotNamedLike":
+                    parm = getParm();
+                    blocks = blocks.NotNamedLike(parm);
+                    break;
+                case "InGroupsNamed":
+                    parm = getParm();
+                    blocks = blocks.InGroupsNamed(parm);
+                    break;
+                case "InGroupsNamedLike":
+                    parm = getParm();
+                    blocks = blocks.InGroupsNamedLike(parm);
+                    break;
+                case "InGroupsNotNamed":
+                    parm = getParm();
+                    blocks = blocks.InGroupsNotNamed(parm);
+                    break;
+                case "InGroupsNotNamedLike":
+                    parm = getParm();
+                    blocks = blocks.InGroupsNotNamedLike(parm);
+                    break;
+                case "OfType":
+                    parm = getParm();
+                    blocks = blocks.OfType(parm);
+                    break;
+                case "OfTypeLike":
+                    parm = getParm();
+                    blocks = blocks.OfTypeLike(parm);
+                    break;
+                case "NotOfType":
+                    parm = getParm();
+                    blocks = blocks.NotOfType(parm);
+                    break;
+                case "NotOfTypeLike":
+                    parm = getParm();
+                    blocks = blocks.OfTypeLike(parm);
+                    break;
+                case "":
                     break;
                 default:
-                    switch(filter)
-                    {
-                        /*** Actions ***/
-                        case "ApplyAction":
-                            argument++;
-                            if(!checkArg(argument, argv)) break;
-                            blocks.ApplyAction(argv[argument]);
-                            break;
-                        case "WritePublicText":
-                            argument++;
-                            if(!checkArg(argument, argv)) break;
-                            blocks.WritePublicText(argv[argument]);
-                            break;
-                        case "WritePrivateText":
-                            argument++;
-                            if(!checkArg(argument, argv)) break;
-                            blocks.WritePrivateText(argv[argument]);
-                            break;
-                        case "AppendPublicText":
-                            argument++;
-                            if(!checkArg(argument, argv)) break;
-                            blocks.AppendPublicText(argv[argument]);
-                            break;
-                        case "AppendPrivateText":
-                            argument++;
-                            if(!checkArg(argument, argv)) break;
-                            blocks.AppendPrivateText(argv[argument]);
-                            break;
-                        case "On":
-                            blocks.On();
-                            break;
-                        case "Off":
-                            blocks.Off();
-                            break;
-                        case "Toggle":
-                            blocks.Toggle();
-                            break;
-                        case "DebugDump":
-                            blocks.DebugDump();
-                            break;
-                        case "DebugDumpActions":
-                            blocks.DebugDumpActions();
-                            break;
-                        case "DebugDumpProperties":
-                            blocks.DebugDumpActions();
-                            break;
-
-                        /*** Filters ***/
-                        case "Named":
-                            argument++;
-                            if(!checkArg(argument, argv)) break;
-                            blocks = blocks.Named(argv[argument]);
-                            break;
-                        case "NamedLike":
-                            argument++;
-                            if(!checkArg(argument, argv)) break;
-                            blocks = blocks.NamedLike(argv[argument]);
-                            break;
-                        case "NotNamed":
-                            argument++;
-                            if(!checkArg(argument, argv)) break;
-                            blocks = blocks.NotNamed(argv[argument]);
-                            break;
-                        case "NotNamedLike":
-                            argument++;
-                            if(!checkArg(argument, argv)) break;
-                            blocks = blocks.NotNamedLike(argv[argument]);
-                            break;
-                        case "InGroupsNamed":
-                            argument++;
-                            if(!checkArg(argument, argv)) break;
-                            blocks = blocks.InGroupsNamed(argv[argument]);
-                            break;
-                        case "InGroupsNamedLike":
-                            argument++;
-                            if(!checkArg(argument, argv)) break;
-                            blocks = blocks.InGroupsNamedLike(argv[argument]);
-                            break;
-                        case "InGroupsNotNamed":
-                            argument++;
-                            if(!checkArg(argument, argv)) break;
-                            blocks = blocks.InGroupsNotNamed(argv[argument]);
-                            break;
-                        case "InGroupsNotNamedLike":
-                            argument++;
-                            if(!checkArg(argument, argv)) break;
-                            blocks = blocks.InGroupsNotNamedLike(argv[argument]);
-                            break;
-                        case "OfType":
-                            argument++;
-                            if(!checkArg(argument, argv)) break;
-                            blocks = blocks.OfType(argv[argument]);
-                            break;
-                        case "OfTypeLike":
-                            argument++;
-                            if(!checkArg(argument, argv)) break;
-                            blocks = blocks.OfTypeLike(argv[argument]);
-                            break;
-                        case "NotOfType":
-                            argument++;
-                            if(!checkArg(argument, argv)) break;
-                            blocks = blocks.NotOfType(argv[argument]);
-                            break;
-                        case "NotOfTypeLike":
-                            argument++;
-                            if(!checkArg(argument, argv)) break;
-                            blocks = blocks.OfTypeLike(argv[argument]);
-                            break;
-                        default:
-                            blocks = blocks.Named(argv[argument]);
-                            break;
-                    }
+                    failure("Invalid command: '" + command + "'");
                     break;
             }
+
+            skipWhitespace();
             
-            argument++;
+            if(pos < text.Length && text[pos] == '.') pos++;
         }
-        
-        return argument;
     }
 }
 public class EasyEvent

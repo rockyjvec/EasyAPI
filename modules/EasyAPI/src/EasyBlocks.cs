@@ -341,6 +341,16 @@ public class EasyBlocks
         return this;
     }
 
+    public EasyBlocks Run(EasyAPI api, string type = "public")
+    {
+        for(int i = 0; i < this.Blocks.Count; i++)
+        {
+            this.Blocks[i].Run(api, type);
+        }
+        
+        return this;
+    }
+    
     public EasyBlocks SendMessage(EasyMessage message)
     {
         for(int i = 0; i < this.Blocks.Count; i++)

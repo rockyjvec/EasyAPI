@@ -213,7 +213,51 @@ public struct EasyBlock
 
         return this;
     }
+    
+    public EasyBlock Run(EasyAPI api, string type = "public")
+    {
+        var cmd = new EasyCommands(api);
+        switch(type)
+        {
+            case "private":
+                cmd.handle(this.GetPrivateText());                    
+                break;  
+            default:
+                cmd.handle(this.GetPublicText());                    
+                break;
+        }
+        
+        return this;
+    }
 
+    public string GetPublicText()
+    {
+        string ret = "";
+        
+        IMyTextPanel textPanel = Block as IMyTextPanel;
+
+        if(textPanel != null)
+        {
+            ret = textPanel.GetPublicText();
+        }
+        
+        return ret;
+    }
+    
+    public string GetPrivateText()
+    {
+        string ret = "";
+        
+        IMyTextPanel textPanel = Block as IMyTextPanel;
+
+        if(textPanel != null)
+        {
+            ret = textPanel.GetPrivateText();
+        }
+        
+        return ret;
+    }
+    
     public EasyBlock WritePublicText(string text)
     {
         IMyTextPanel textPanel = Block as IMyTextPanel;
