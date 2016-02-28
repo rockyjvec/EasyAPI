@@ -201,6 +201,10 @@ public class EasyCommands
                     parm = getParm();
                     blocks.Run(api, parm);
                     break;
+                case "RunPB":
+                    parm = getParm();
+                    blocks.RunPB(parm);
+                    break;
 
                 /*** Filters ***/
                 case "Named":

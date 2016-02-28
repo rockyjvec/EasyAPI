@@ -702,6 +702,16 @@ public class EasyBlocks
         return this;
     }
     
+    public EasyBlocks RunPB(string argument = "")
+    {
+        for(int i = 0; i < this.Blocks.Count; i++)
+        {
+            this.Blocks[i].RunPB(argument);
+        }
+
+        return this;
+    }
+
     public EasyBlocks WritePublicText(string text)
     {
         for(int i = 0; i < this.Blocks.Count; i++)
@@ -717,6 +727,26 @@ public class EasyBlocks
         for(int i = 0; i < this.Blocks.Count; i++)
         {
             this.Blocks[i].WritePublicText(text);
+        }
+
+        return this;
+    }
+
+    public EasyBlocks WritePublicTitle(string text)
+    {
+        for(int i = 0; i < this.Blocks.Count; i++)
+        {
+            this.Blocks[i].WritePublicTitle(text);
+        }
+
+        return this;
+    }
+
+    public EasyBlocks WritePrivateTitle(string text)
+    {
+        for(int i = 0; i < this.Blocks.Count; i++)
+        {
+            this.Blocks[i].WritePublicTitle(text);
         }
 
         return this;
@@ -1067,6 +1097,18 @@ public struct EasyBlock
         return this;
     }
 
+    public EasyBlock RunPB(string argument = "")
+    {
+        IMyProgrammableBlock pb = Block as IMyProgrammableBlock;
+
+        if(pb != null)
+        {
+            pb.TryRun(argument);
+        }
+
+        return this;        
+    }
+    
     public string GetPublicText()
     {
         string ret = "";
@@ -1095,6 +1137,30 @@ public struct EasyBlock
         return ret;
     }
     
+    public EasyBlock WritePublicTitle(string text)
+    {
+        IMyTextPanel textPanel = Block as IMyTextPanel;
+
+        if(textPanel != null)
+        {
+            textPanel.WritePublicTitle(text);
+        }
+
+        return this;
+    }
+
+    public EasyBlock WritePrivateTitle(string text)
+    {
+        IMyTextPanel textPanel = Block as IMyTextPanel;
+
+        if(textPanel != null)
+        {
+            textPanel.WritePrivateTitle(text, false);
+        }
+
+        return this;
+    }
+
     public EasyBlock WritePublicText(string text)
     {
         IMyTextPanel textPanel = Block as IMyTextPanel;
@@ -1592,6 +1658,10 @@ public class EasyCommands
                 case "Run":
                     parm = getParm();
                     blocks.Run(api, parm);
+                    break;
+                case "RunPB":
+                    parm = getParm();
+                    blocks.RunPB(parm);
                     break;
 
                 /*** Filters ***/

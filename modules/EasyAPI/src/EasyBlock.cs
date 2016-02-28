@@ -230,6 +230,18 @@ public struct EasyBlock
         return this;
     }
 
+    public EasyBlock RunPB(string argument = "")
+    {
+        IMyProgrammableBlock pb = Block as IMyProgrammableBlock;
+
+        if(pb != null)
+        {
+            pb.TryRun(argument);
+        }
+
+        return this;        
+    }
+    
     public string GetPublicText()
     {
         string ret = "";
@@ -258,6 +270,30 @@ public struct EasyBlock
         return ret;
     }
     
+    public EasyBlock WritePublicTitle(string text)
+    {
+        IMyTextPanel textPanel = Block as IMyTextPanel;
+
+        if(textPanel != null)
+        {
+            textPanel.WritePublicTitle(text);
+        }
+
+        return this;
+    }
+
+    public EasyBlock WritePrivateTitle(string text)
+    {
+        IMyTextPanel textPanel = Block as IMyTextPanel;
+
+        if(textPanel != null)
+        {
+            textPanel.WritePrivateTitle(text, false);
+        }
+
+        return this;
+    }
+
     public EasyBlock WritePublicText(string text)
     {
         IMyTextPanel textPanel = Block as IMyTextPanel;

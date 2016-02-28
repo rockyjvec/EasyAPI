@@ -417,6 +417,16 @@ public class EasyBlocks
         return this;
     }
     
+    public EasyBlocks RunPB(string argument = "")
+    {
+        for(int i = 0; i < this.Blocks.Count; i++)
+        {
+            this.Blocks[i].RunPB(argument);
+        }
+
+        return this;
+    }
+
     public EasyBlocks WritePublicText(string text)
     {
         for(int i = 0; i < this.Blocks.Count; i++)
@@ -432,6 +442,26 @@ public class EasyBlocks
         for(int i = 0; i < this.Blocks.Count; i++)
         {
             this.Blocks[i].WritePublicText(text);
+        }
+
+        return this;
+    }
+
+    public EasyBlocks WritePublicTitle(string text)
+    {
+        for(int i = 0; i < this.Blocks.Count; i++)
+        {
+            this.Blocks[i].WritePublicTitle(text);
+        }
+
+        return this;
+    }
+
+    public EasyBlocks WritePrivateTitle(string text)
+    {
+        for(int i = 0; i < this.Blocks.Count; i++)
+        {
+            this.Blocks[i].WritePublicTitle(text);
         }
 
         return this;
