@@ -97,10 +97,22 @@ public class EasyCommands
                         pos++;
                         break;
                     }
-                    else if(text[pos] == '\\' && pos + 1 < text.Length && text[pos + 1] == '"') 
+                    else if(text[pos] == '\\' && pos + 1 < text.Length)
                     {
-                        param += '"';     
-                        pos++;
+                        if(text[pos + 1] == '"')
+                        {
+                            param += '"';                                 
+                            pos++;
+                        }
+                        else if(text[pos + 1] == 'n')
+                        {
+                            param += "\n";
+                            pos++;
+                        }
+                        else
+                        {
+                            param += text[pos];
+                        }
                     }
                     else
                     {
