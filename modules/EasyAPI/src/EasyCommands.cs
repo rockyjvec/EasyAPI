@@ -195,7 +195,7 @@ public class EasyCommands
                     break;
                 case "DebugDumpProperties":
                     parm = getParm();
-                    blocks.DebugDumpActions();
+                    blocks.DebugDumpProperties();
                     break;
                 case "Run":
                     parm = getParm();
