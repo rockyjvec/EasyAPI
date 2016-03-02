@@ -7,7 +7,7 @@ public class EasyCommands
     
     private EasyAPI api; // The selected menu item (child)
     private EasyBlocks blocks;
-
+    public Dictionary<string,string> functions = new Dictionary<string,string>();
     private int pos = 0;
     private string text = "";
     
@@ -37,41 +37,61 @@ public class EasyCommands
         throw new Exception("EasyCommand Error: " + message);
     }
     
-    private bool isWhitespace(char c)
-    {
-        switch((int)c)
-        {
-            case 9:
-            case 10:
-            case 11:
-            case 12:
-            case 13:
-            case 32:
-                return true;
-        }
-        return false;
-    }
-    
-    private bool isAlphanum(char c)
-    {
-        if((48 <= c && c <= 57) || (97 <= c && c <= 122) || (65 <= c && c <= 90))
-            return true;
-        else
-            return false;
-    }
-    
     private void skipWhitespace()
     {
-        while(pos < text.Length && isWhitespace(text[pos]))
+        while(pos < text.Length && char.IsWhiteSpace(text, pos))
         {
             pos++;
+        }
+    }
+    
+    private void skipLineComment()
+    {
+        pos += 2;
+        while(pos < text.Length)
+        {
+            if(text[pos] == "\n"[0])
+            {
+                pos++;
+                break;
+            }
+            pos++;
+        }        
+    }
+    
+    private void skipBlockComment()
+    {
+        pos += 2;
+        while(pos < text.Length && pos + 1 < text.Length)
+        {
+            if(text[pos] == '*' && text[pos+1] == '/')
+            {
+                pos += 2;
+                break;
+            }
+            pos++;
+        }
+    }
+    
+    private void skipNonCode()
+    {
+        while(pos < text.Length)
+        {
+            if(char.IsWhiteSpace(text, pos)) skipWhitespace();
+            else if(pos + 1 < text.Length && text[pos] == '/')
+            {
+                if(text[pos+1] == '/') skipLineComment();
+                else if(text[pos+1] == '*') skipBlockComment();
+                else break;
+            }
+            else break;
         }
     }
     
     private string getIdentifier()
     {
         string identifier = "";
-        while(pos < text.Length && isAlphanum(text[pos]))
+        while(pos < text.Length && char.IsLetterOrDigit(text[pos]))
         {
             identifier += text[pos];
             pos++;
@@ -82,11 +102,11 @@ public class EasyCommands
     private string getParm()
     {
         string param = "";
-        skipWhitespace();
+        skipNonCode();
         if(pos < text.Length && text[pos] == '(')
         {
             pos++;
-            skipWhitespace();
+            skipNonCode();
             if(pos < text.Length && text[pos] == '"')
             {
                 pos++;
@@ -121,7 +141,7 @@ public class EasyCommands
                     pos++;
                 }
             }
-            skipWhitespace();
+            skipNonCode();
             
             if(pos < text.Length && text[pos]== ')')
             {
@@ -132,18 +152,69 @@ public class EasyCommands
         return param;
     }
     
+    private string getFunction()
+    {
+        // Todo this is REALLY basic and it should do a lot more parsing instead of just looking for the end curly brace.  Functions will break if a curly brace appears anywhere inside them
+        string code = "";
+        while(pos < text.Length)
+        {
+            if(text[pos] == '}')
+            {
+              pos++;
+              break;
+            }
+            code += text[pos];
+            pos++;
+        }
+        return code;
+    }
+    
+    private void require(char c)
+    {
+        if(pos < text.Length && text[pos] == c)
+        {
+            pos++;
+            return;
+        }
+        failure("Required: " + c);
+    }
+    
     private void doCommand()
     {
         while(pos < text.Length && text[pos] != ';')
         {
-            skipWhitespace();
+            skipNonCode();
             string command = getIdentifier();
+            
+            if(command == "")
+            {
+                return;
+            }
+            
             string parm = "";
             EasyBlocks blks;
             EasyCommands cmd;
             
             switch(command)
             {
+                case "function":
+                    skipNonCode();
+                    string identifier = getIdentifier();
+                    skipNonCode();
+                    require('(');
+                    skipNonCode();
+                    require(')');
+                    skipNonCode();
+                    require('{');
+                    skipNonCode();
+                    string function = getFunction();
+                    if(functions.ContainsKey(identifier))
+                    {
+                        failure("Function " + identifier + " already defined!");
+                    }
+                    functions.Add(identifier, function);
+                    return;
+                    break;
                 case "Echo":
                     parm = getParm();
                     api.Echo(parm);
@@ -255,14 +326,12 @@ public class EasyCommands
                     parm = getParm();
                     blocks = blocks.OfTypeLike(parm);
                     break;
-                case "":
-                    break;
                 default:
                     failure("Invalid command: '" + command + "'");
                     break;
             }
 
-            skipWhitespace();
+            skipNonCode();
             
             if(pos < text.Length && text[pos] == '.') pos++;
         }

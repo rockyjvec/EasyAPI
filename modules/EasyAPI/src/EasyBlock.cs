@@ -165,7 +165,7 @@ public struct EasyBlock
 
         return this;
     }
-
+    
     public T GetProperty<T>(String PropertyId)
     {
         return Sandbox.ModAPI.Interfaces.TerminalPropertyExtensions.GetValue<T>(this.Block, PropertyId);
