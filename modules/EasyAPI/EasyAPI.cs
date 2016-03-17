@@ -617,6 +617,40 @@ public class EasyBlocks
         return a.Minus(b);
     }
 
+    public EasyBlocks Plus(EasyBlock Block)
+    {
+        List<EasyBlock> FilteredList = new List<EasyBlock>();
+
+        FilteredList.AddRange(this.Blocks);
+
+        if(!FilteredList.Contains(Block))
+        {
+            FilteredList.Add(Block);
+        }
+
+        return new EasyBlocks(FilteredList);
+    }
+
+    public EasyBlocks Minus(EasyBlock Block)
+    {
+        List<EasyBlock> FilteredList = new List<EasyBlock>();
+
+        FilteredList.AddRange(this.Blocks);
+        FilteredList.Remove(Block);
+
+        return new EasyBlocks(FilteredList);
+    }
+
+    public static EasyBlocks operator +(EasyBlocks a, EasyBlock b)
+    {
+        return a.Plus(b);
+    }
+
+    public static EasyBlocks operator -(EasyBlocks a, EasyBlock b)
+    {
+        return a.Minus(b);
+    }
+    
     /*** Operations ***/
 
     public EasyBlocks FindOrFail(string message)
