@@ -20,7 +20,6 @@ public abstract class EasyAPI
     private Dictionary<string,List<Action<int, string[]>>> CommandActions; 
     private List<EasyInterval> Schedule; 
     private List<EasyInterval> Intervals; 
-    private List<EasyEvent> Events; 
     private EasyCommands commands;
  
     /*** Overridable lifecycle methods ***/ 
@@ -54,7 +53,6 @@ public abstract class EasyAPI
         this.ElapsedTime = elapsedTime; 
         this.ArgumentActions = new Dictionary<string,List<Action>>(); 
         this.CommandActions = new Dictionary<string,List<Action<int, string[]>>>(); 
-        this.Events = new List<EasyEvent>(); 
         this.Schedule = new List<EasyInterval>(); 
         this.Intervals = new List<EasyInterval>(); 
         this.commands = new EasyCommands(this);
@@ -65,20 +63,9 @@ public abstract class EasyAPI
         this.Reset(); 
     } 
  
-    private void handleEvents() 
-    { 
-        for(int n = 0; n < Events.Count; n++) 
-        { 
-            if(!(Events[n].handle)()) 
-            { 
-                Events.Remove(Events[n]); 
-            } 
-        } 
-    } 
- 
     public void AddEvent(EasyEvent e) 
     { 
-        Events.Add(e); 
+        EasyEvent.add(e); 
     } 
  
     public void AddEvent(EasyBlock block, Func<EasyBlock, bool> evnt, Func<EasyBlock, bool> action) 
@@ -197,7 +184,7 @@ public abstract class EasyAPI
         this.delta = this.clock - lastClock; 
  
         /*** Handle Events ***/ 
-        handleEvents(); 
+        EasyEvent.handle(); 
  
         /*** Handle Intervals ***/ 
         for(int n = 0; n < this.Intervals.Count; n++) 

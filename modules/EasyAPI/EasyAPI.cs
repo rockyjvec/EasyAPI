@@ -20,7 +20,6 @@ public abstract class EasyAPI
     private Dictionary<string,List<Action<int, string[]>>> CommandActions; 
     private List<EasyInterval> Schedule; 
     private List<EasyInterval> Intervals; 
-    private List<EasyEvent> Events; 
     private EasyCommands commands;
  
     /*** Overridable lifecycle methods ***/ 
@@ -54,7 +53,6 @@ public abstract class EasyAPI
         this.ElapsedTime = elapsedTime; 
         this.ArgumentActions = new Dictionary<string,List<Action>>(); 
         this.CommandActions = new Dictionary<string,List<Action<int, string[]>>>(); 
-        this.Events = new List<EasyEvent>(); 
         this.Schedule = new List<EasyInterval>(); 
         this.Intervals = new List<EasyInterval>(); 
         this.commands = new EasyCommands(this);
@@ -65,20 +63,9 @@ public abstract class EasyAPI
         this.Reset(); 
     } 
  
-    private void handleEvents() 
-    { 
-        for(int n = 0; n < Events.Count; n++) 
-        { 
-            if(!(Events[n].handle)()) 
-            { 
-                Events.Remove(Events[n]); 
-            } 
-        } 
-    } 
- 
     public void AddEvent(EasyEvent e) 
     { 
-        Events.Add(e); 
+        EasyEvent.add(e); 
     } 
  
     public void AddEvent(EasyBlock block, Func<EasyBlock, bool> evnt, Func<EasyBlock, bool> action) 
@@ -197,7 +184,7 @@ public abstract class EasyAPI
         this.delta = this.clock - lastClock; 
  
         /*** Handle Events ***/ 
-        handleEvents(); 
+        EasyEvent.handle(); 
  
         /*** Handle Intervals ***/ 
         for(int n = 0; n < this.Intervals.Count; n++) 
@@ -874,6 +861,18 @@ public class EasyBlocks
             return output;
     }
     
+    /*** Events ***/
+    
+    public EasyBlocks AddEvent(Func<EasyBlock, bool> evnt, Func<EasyBlock, bool> action)
+    {
+        for(int i = 0; i < this.Blocks.Count; i++)
+        {
+            this.Blocks[i].AddEvent(evnt, action);
+        }
+
+        return this;        
+    }
+
     private bool EasyCompare(String op, String a, String b)
     {
         switch(op)
@@ -898,6 +897,7 @@ public class EasyBlocks
         }
         return false;
     }
+    
 }
 public struct EasyBlock
 {
@@ -1263,7 +1263,16 @@ public struct EasyBlock
         this.Block.GetProperties(properties);
         return properties;
     }
-
+    
+    /*** Events ***/
+    
+    public EasyBlock AddEvent(Func<EasyBlock, bool> evnt, Func<EasyBlock, bool> action)
+    {
+        EasyEvent.add(new EasyEvent(this, evnt, action));
+        
+        return this;
+    }
+    
     public EasyInventory Items(Nullable<int> fix_duplicate_name_bug = null)
     {
         List<EasyBlock> Blocks = new List<EasyBlock>();
@@ -1833,24 +1842,44 @@ public class EasyEvent
 { 
     private Func<EasyBlock,bool> op; // The comparison function 
  
-    private EasyBlock obj; // Object to pass through to the callback when the event is triggered 
+    private EasyBlock block; // Object to pass through to the callback when the event is triggered 
  
     private Func<EasyBlock,bool> callback; // What to call when the event occurs 
  
-    public EasyEvent(EasyBlock obj, Func<EasyBlock,bool> op, Func<EasyBlock,bool> callback) 
+    public EasyEvent(EasyBlock block, Func<EasyBlock,bool> op, Func<EasyBlock,bool> callback) 
     { 
         this.op = op; 
         this.callback = callback; 
-        this.obj = obj; 
+        this.block = block; 
     } 
  
-    public bool handle() 
+    public bool process() 
     { 
-        if((this.op)((EasyBlock)this.obj)) 
+        if((this.op)(this.block)) 
         { 
-            return (this.callback)((EasyBlock)this.obj); 
+            return (this.callback)(this.block);
         } 
  
         return true; 
+    }
+    
+    /*** static ***/
+    
+    private static List<EasyEvent> events = new List<EasyEvent>();
+    
+    public static void handle() 
+    {
+        for(int i = 0; i < events.Count; i++)
+        {             
+            if(!events[i].process()) 
+            { 
+                events.Remove(events[i]); 
+            } 
+        } 
+    } 
+
+    public static void add(EasyEvent e) 
+    { 
+        events.Add(e); 
     } 
 }

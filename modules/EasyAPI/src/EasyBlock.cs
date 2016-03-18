@@ -362,7 +362,16 @@ public struct EasyBlock
         this.Block.GetProperties(properties);
         return properties;
     }
-
+    
+    /*** Events ***/
+    
+    public EasyBlock AddEvent(Func<EasyBlock, bool> evnt, Func<EasyBlock, bool> action)
+    {
+        EasyEvent.add(new EasyEvent(this, evnt, action));
+        
+        return this;
+    }
+    
     public EasyInventory Items(Nullable<int> fix_duplicate_name_bug = null)
     {
         List<EasyBlock> Blocks = new List<EasyBlock>();

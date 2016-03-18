@@ -589,6 +589,18 @@ public class EasyBlocks
             return output;
     }
     
+    /*** Events ***/
+    
+    public EasyBlocks AddEvent(Func<EasyBlock, bool> evnt, Func<EasyBlock, bool> action)
+    {
+        for(int i = 0; i < this.Blocks.Count; i++)
+        {
+            this.Blocks[i].AddEvent(evnt, action);
+        }
+
+        return this;        
+    }
+
     private bool EasyCompare(String op, String a, String b)
     {
         switch(op)
@@ -613,4 +625,5 @@ public class EasyBlocks
         }
         return false;
     }
+    
 }
