@@ -14,9 +14,9 @@ public class EasyInventory
 
             for(int j = 0; j < Block.Block.GetInventoryCount(); j++)
             {
-                VRage.ModAPI.Ingame.IMyInventory Inventory = Block.Block.GetInventory(j);
+                IMyInventory Inventory = Block.Block.GetInventory(j);
 
-                List<VRage.ModAPI.Ingame.IMyInventoryItem> Items = Inventory.GetItems();
+                List<IMyInventoryItem> Items = Inventory.GetItems();
 
                 for(int k = 0; k < Items.Count; k++)
                 {
