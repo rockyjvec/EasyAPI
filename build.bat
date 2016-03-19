@@ -14,6 +14,10 @@ copy /b ^
   modules\BootstrapEasyAPI\BootstrapEasyAPI.cs +^
   EasyAPI.min.cs ^
   EasyAPI.cs
+copy /b ^
+  modules\BootstrapEasyAPI\BootstrapEasyAPI.cs +^
+  EasyAPI.lib.cs ^
+  EasyAPI.debug.cs  
 del EasyAPI.lib.cs
 del EasyAPI.min.cs
 pause
