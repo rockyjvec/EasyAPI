@@ -591,11 +591,11 @@ public class EasyBlocks
     
     /*** Events ***/
     
-    public EasyBlocks AddEvent(Func<EasyBlock, bool> evnt, Func<EasyBlock, bool> action)
+    public EasyBlocks AddEvent(Func<EasyBlock, bool> evnt, Func<EasyBlock, bool> action, bool onChange = false)
     {
         for(int i = 0; i < this.Blocks.Count; i++)
         {
-            this.Blocks[i].AddEvent(evnt, action);
+            this.Blocks[i].AddEvent(evnt, action, onChange);
         }
 
         return this;        

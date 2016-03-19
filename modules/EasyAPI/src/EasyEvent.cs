@@ -6,20 +6,29 @@ public class EasyEvent
  
     private Func<EasyBlock,bool> callback; // What to call when the event occurs 
  
-    public EasyEvent(EasyBlock block, Func<EasyBlock,bool> op, Func<EasyBlock,bool> callback) 
+    private bool last = false;
+    
+    private bool onChange = false;
+ 
+    public EasyEvent(EasyBlock block, Func<EasyBlock,bool> op, Func<EasyBlock,bool> callback, bool onChange = false)
     { 
         this.op = op; 
         this.callback = callback; 
         this.block = block; 
+        this.onChange = onChange;
     } 
  
     public bool process() 
-    { 
-        if((this.op)(this.block)) 
-        { 
+    {
+        bool result = (this.op)(this.block);
+        
+        if(result && (!onChange || !last))
+        {
+            last = result;
             return (this.callback)(this.block);
         } 
  
+        last = result;
         return true; 
     }
     

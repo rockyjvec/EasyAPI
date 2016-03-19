@@ -365,9 +365,9 @@ public struct EasyBlock
     
     /*** Events ***/
     
-    public EasyBlock AddEvent(Func<EasyBlock, bool> evnt, Func<EasyBlock, bool> action)
+    public EasyBlock AddEvent(Func<EasyBlock, bool> evnt, Func<EasyBlock, bool> action, bool onChange = false)
     {
-        EasyEvent.add(new EasyEvent(this, evnt, action));
+        EasyEvent.add(new EasyEvent(this, evnt, action, onChange));
         
         return this;
     }

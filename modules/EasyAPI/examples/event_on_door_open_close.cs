@@ -6,35 +6,28 @@ public class Example : EasyAPI
             delegate(EasyBlock block) { 
                 return block.Open(); 
             }, 
-            doorOpened 
-        ); 
+            doorOpened,
+            true
+        ).AddEvent( 
+            delegate(EasyBlock block) { 
+                return !block.Open(); 
+            }, 
+            doorClosed,
+            true
+        );
     } 
  
     public bool doorOpened(EasyBlock door) 
     { 
         // Do something when door is opened 
 
-        door.AddEvent( 
-            delegate(EasyBlock block) { 
-                return !block.Open(); 
-            }, 
-            doorClosed 
-        ); 
- 
-        return false; 
+        return true; 
     } 
  
     public bool doorClosed(EasyBlock door) 
     { 
         // Do something when door is closed 
  
-        door.AddEvent( 
-            delegate(EasyBlock block) { 
-                return block.Open(); 
-            }, 
-            doorOpened 
-        ); 
- 
-        return false; 
+        return true;
     } 
 } 

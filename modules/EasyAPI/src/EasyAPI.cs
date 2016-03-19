@@ -68,16 +68,16 @@ public abstract class EasyAPI
         EasyEvent.add(e); 
     } 
  
-    public void AddEvent(EasyBlock block, Func<EasyBlock, bool> evnt, Func<EasyBlock, bool> action) 
+    public void AddEvent(EasyBlock block, Func<EasyBlock, bool> evnt, Func<EasyBlock, bool> action, bool onChange = false) 
     {
-        this.AddEvent(new EasyEvent(block, evnt, action)); 
+        this.AddEvent(new EasyEvent(block, evnt, action, onChange)); 
     } 
  
-    public void AddEvents(EasyBlocks blocks, Func<EasyBlock, bool> evnt, Func<EasyBlock, bool> action) 
+    public void AddEvents(EasyBlocks blocks, Func<EasyBlock, bool> evnt, Func<EasyBlock, bool> action, bool onChange = false)
     { 
         for(int i = 0; i < blocks.Count(); i++) 
         { 
-            this.AddEvent(new EasyEvent(blocks.GetBlock(i), evnt, action)); 
+            this.AddEvent(new EasyEvent(blocks.GetBlock(i), evnt, action, onChange)); 
         } 
     } 
  
