@@ -185,7 +185,7 @@ public abstract class EasyAPI
                     }                 
                 }
             }
-            else if(argument.Substring(0, 12) == "EasyCommand ")
+            else if(argument.Length > 12 && argument.Substring(0, 12) == "EasyCommand ")
             {
                 this.commands.handle(argument.Substring(12));
             }
