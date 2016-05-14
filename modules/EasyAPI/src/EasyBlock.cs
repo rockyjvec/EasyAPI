@@ -186,6 +186,20 @@ public struct EasyBlock
         return this;
     }
 
+    public EasyBlock SetFloatValue(String PropertyId, float value)
+    {
+        try
+        {
+            Sandbox.ModAPI.Interfaces.TerminalPropertyExtensions.SetValueFloat(this.Block, PropertyId, value);
+        }
+        catch(Exception e)
+        {
+
+        }
+
+        return this;
+    }
+
     public EasyBlock On()
     {
         this.ApplyAction("OnOff_On");

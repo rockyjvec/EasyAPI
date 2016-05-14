@@ -416,6 +416,16 @@ public class EasyBlocks
         return this;
     }
 
+    public EasyBlocks SetFloatValue(String PropertyId, float value, int bleh = 0)
+    {
+        for(int i = 0; i < this.Blocks.Count; i++)
+        {
+            this.Blocks[i].SetFloatValue(PropertyId, value);
+        }
+
+        return this;
+    }
+
     public T GetProperty<T>(String PropertyId, int bleh = 0)
     {
         return this.Blocks[0].GetProperty<T>(PropertyId);
