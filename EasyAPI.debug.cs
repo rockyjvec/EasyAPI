@@ -303,7 +303,7 @@ public abstract class EasyAPI
 } 
 public class EasyBlocks
 {
-    private List<EasyBlock> Blocks;
+    public List<EasyBlock> Blocks;
 
     // Constructor with IMyTerminalBlock list
     public EasyBlocks(List<IMyTerminalBlock> TBlocks)
