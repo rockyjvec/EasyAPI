@@ -270,6 +270,8 @@ public abstract class EasyAPI
         Blocks = new EasyBlocks(kBlocks); 
     } 
 } 
+
+
 public class EasyBlocks
 {
     public List<EasyBlock> Blocks;
@@ -465,6 +467,7 @@ public class EasyBlocks
         List<IMyBlockGroup> groups = new List<IMyBlockGroup>();
         EasyAPI.grid.GetBlockGroups(groups);
         List<IMyBlockGroup> matchedGroups = new List<IMyBlockGroup>();
+        List<IMyTerminalBlock> groupBlocks = new List<IMyTerminalBlock>();
 
         for(int n = 0; n < groups.Count; n++)
         {
@@ -479,14 +482,15 @@ public class EasyBlocks
             for(int i = 0; i < this.Blocks.Count; i++)
             {
                 IMyTerminalBlock block = this.Blocks[i].Block;
-
-                for(int j = 0; j < matchedGroups[n].Blocks.Count; j++)
+                matchedGroups[n].GetBlocks(groupBlocks);
+                for(int j = 0; j < groupBlocks.Count; j++)
                 {
-                    if(block == matchedGroups[n].Blocks[j])
+                    if(block == groupBlocks[j])
                     {
                         FilteredList.Add(this.Blocks[i]);
                     }
                 }
+                groupBlocks.Clear();
             }
         }
 
