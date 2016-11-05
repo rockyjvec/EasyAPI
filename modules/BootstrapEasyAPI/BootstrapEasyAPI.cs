@@ -21,7 +21,7 @@ void Main(string argument)
 {
     if(state == null)
     {
-        state = new Example(GridTerminalSystem, Me, Echo, ElapsedTime);
+        state = new Example(GridTerminalSystem, Me, Echo, Runtime.TimeSinceLastRun);
     }
 
     // Set the minimum time between ticks here to prevent lag.

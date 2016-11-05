@@ -1721,8 +1721,6 @@ public class EasyCommands
             }
             
             string parm = "";
-            EasyBlocks blks;
-            EasyCommands cmd;
             
             switch(command)
             {
@@ -1743,7 +1741,6 @@ public class EasyCommands
                     }
                     functions.Add(identifier, function);
                     return;
-                    break;
                 case "Echo":
                     parm = getParm();
                     api.Echo(parm);
