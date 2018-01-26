@@ -4,7 +4,7 @@ public class Example : EasyAPI
 
     public Example(IMyGridTerminalSystem grid, IMyProgrammableBlock me, Action<string> echo, TimeSpan elapsedTime) : base(grid, me, echo, elapsedTime)  
     {  
-        doors = Blocks.OfType("Sliding Door");
+        doors = Blocks.OfType("Door");
 
         // split work over time so it doesn't throw a complexity error (tested with 384 doors)
         In(1 * EasyAPI.Seconds, delegate() { // In one second, create the events.

@@ -757,11 +757,11 @@ public class EasyBlocks
         return this;
     }
 
-    public EasyBlocks WritePrivateText(string text)
+    public EasyBlocks WriteCustomData(string text)
     {
         for(int i = 0; i < this.Blocks.Count; i++)
         {
-            this.Blocks[i].WritePublicText(text);
+            this.Blocks[i].WriteCustomData(text);
         }
 
         return this;
@@ -797,16 +797,6 @@ public class EasyBlocks
         return this;
     }
 
-    public EasyBlocks AppendPrivateText(string text)
-    {
-        for(int i = 0; i < this.Blocks.Count; i++)
-        {
-            this.Blocks[i].AppendPrivateText(text);
-        }
-
-        return this;
-    }    
-    
     public EasyInventory Items()
     {
         return new EasyInventory(this.Blocks);
@@ -960,7 +950,7 @@ public struct EasyBlock
 
         if(door != null)
         {
-            return door.Open;
+            return door.Status == DoorStatus.Open;
         }
 
         return false;
@@ -1149,7 +1139,7 @@ public struct EasyBlock
         switch(type)
         {
             case "private":
-                cmd.handle(this.GetPrivateText());                    
+                cmd.handle(this.GetCustomData());
                 break;  
             default:
                 cmd.handle(this.GetPublicText());                    
@@ -1185,7 +1175,7 @@ public struct EasyBlock
         return ret;
     }
     
-    public string GetPrivateText()
+    public string GetCustomData()
     {
         string ret = "";
         
@@ -1193,7 +1183,7 @@ public struct EasyBlock
 
         if(textPanel != null)
         {
-            ret = textPanel.GetPrivateText();
+            ret = textPanel.CustomData;
         }
         
         return ret;
@@ -1211,18 +1201,6 @@ public struct EasyBlock
         return this;
     }
 
-    public EasyBlock WritePrivateTitle(string text)
-    {
-        IMyTextPanel textPanel = Block as IMyTextPanel;
-
-        if(textPanel != null)
-        {
-            textPanel.WritePrivateTitle(text, false);
-        }
-
-        return this;
-    }
-
     public EasyBlock WritePublicText(string text)
     {
         IMyTextPanel textPanel = Block as IMyTextPanel;
@@ -1235,13 +1213,13 @@ public struct EasyBlock
         return this;
     }
 
-    public EasyBlock WritePrivateText(string text)
+    public EasyBlock WriteCustomData(string text)
     {
         IMyTextPanel textPanel = Block as IMyTextPanel;
 
         if(textPanel != null)
         {
-            textPanel.WritePrivateText(text, false);
+            textPanel.CustomData = text;
         }
 
         return this;
@@ -1259,21 +1237,9 @@ public struct EasyBlock
         return this;
     }
 
-    public EasyBlock AppendPrivateText(string text)
-    {
-        IMyTextPanel textPanel = Block as IMyTextPanel;
-
-        if(textPanel != null)
-        {
-            textPanel.WritePrivateText(text, true);
-        }
-
-        return this;
-    }
-
     public EasyBlock SetName(String Name)
     {
-        this.Block.SetCustomName(Name);
+        this.Block.CustomName = Name;
 
         return this;
     }
@@ -1345,7 +1311,7 @@ public class EasyInventory
         {
             EasyBlock Block = Blocks[i];
 
-            for(int j = 0; j < Block.Block.GetInventoryCount(); j++)
+            for(int j = 0; j < Block.Block.InventoryCount; j++)
             {
                 IMyInventory Inventory = Block.Block.GetInventory(j);
 
@@ -1758,17 +1724,14 @@ public class EasyCommands
                     parm = getParm();
                     blocks.WritePublicText(parm);
                     break;
+                case "WriteCustomData":
                 case "WritePrivateText":
                     parm = getParm();
-                    blocks.WritePrivateText(parm);
+                    blocks.WriteCustomData(parm);
                     break;
                 case "AppendPublicText":
                     parm = getParm();
                     blocks.AppendPublicText(parm);
-                    break;
-                case "AppendPrivateText":
-                    parm = getParm();
-                    blocks.AppendPrivateText(parm);
                     break;
                 case "On":
                     parm = getParm();

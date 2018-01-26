@@ -229,17 +229,14 @@ public class EasyCommands
                     parm = getParm();
                     blocks.WritePublicText(parm);
                     break;
+                case "WriteCustomData":
                 case "WritePrivateText":
                     parm = getParm();
-                    blocks.WritePrivateText(parm);
+                    blocks.WriteCustomData(parm);
                     break;
                 case "AppendPublicText":
                     parm = getParm();
                     blocks.AppendPublicText(parm);
-                    break;
-                case "AppendPrivateText":
-                    parm = getParm();
-                    blocks.AppendPrivateText(parm);
                     break;
                 case "On":
                     parm = getParm();

@@ -485,11 +485,11 @@ public class EasyBlocks
         return this;
     }
 
-    public EasyBlocks WritePrivateText(string text)
+    public EasyBlocks WriteCustomData(string text)
     {
         for(int i = 0; i < this.Blocks.Count; i++)
         {
-            this.Blocks[i].WritePublicText(text);
+            this.Blocks[i].WriteCustomData(text);
         }
 
         return this;
@@ -525,16 +525,6 @@ public class EasyBlocks
         return this;
     }
 
-    public EasyBlocks AppendPrivateText(string text)
-    {
-        for(int i = 0; i < this.Blocks.Count; i++)
-        {
-            this.Blocks[i].AppendPrivateText(text);
-        }
-
-        return this;
-    }    
-    
     public EasyInventory Items()
     {
         return new EasyInventory(this.Blocks);

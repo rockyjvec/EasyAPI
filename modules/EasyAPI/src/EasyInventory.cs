@@ -12,7 +12,7 @@ public class EasyInventory
         {
             EasyBlock Block = Blocks[i];
 
-            for(int j = 0; j < Block.Block.GetInventoryCount(); j++)
+            for(int j = 0; j < Block.Block.InventoryCount; j++)
             {
                 IMyInventory Inventory = Block.Block.GetInventory(j);
 

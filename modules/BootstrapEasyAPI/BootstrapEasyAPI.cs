@@ -17,7 +17,14 @@ public class Example : EasyAPI
 
 Example state;
 
-void Main(string argument)
+public Program()
+{
+    state = new Example(GridTerminalSystem, Me, Echo, Runtime.TimeSinceLastRun);
+	
+	Runtime.UpdateFrequency = UpdateFrequency.Update100;
+}
+
+public void Main(string argument, UpdateType updateType)
 {
     if(state == null)
     {
@@ -25,7 +32,7 @@ void Main(string argument)
     }
 
     // Set the minimum time between ticks here to prevent lag.
-    // To utilise onSingleTap and onDoubleTap, set the minimum time to the same
+    // To utilize onSingleTap and onDoubleTap, set the minimum time to the same
     // time period of the timer running this script (e.g. 1 * EasyAPI.Seconds).
     state.Tick(100 * EasyAPI.Milliseconds, argument);
 }
