@@ -2,8 +2,8 @@
 CAL Menu - powered by EasyAPI and EasyMenu
 *************************************************************************************/ 
  
-static string calBlockName = "CAL"; // Name of CAL programmable block which contains the CAL script 
-static string lcdBlockName = "MenuLCD [LCD]"; // Name of the LCD where you want the menu to display (with standard [LCD] tag for CAL) 
+static string calBlockName = "CAL"; // Name of CAL programmable block which contains the CAL script (No timer needed)
+static string lcdBlockName = "MenuLCD [LCD]"; // Name of the LCD where you want the menu to display (with standard [LCD] tag for CAL) (Display ON)
 static string menuTitle = "CAL Menu"; // The menu title which shows up at the top 
  
 /*** Modify menu items here - first column is menu title, second is CAL command ***/
@@ -71,7 +71,7 @@ public class Example : EasyAPI
         this.lcd = Blocks.Named(lcdBlockName).FindOrFail("Menu LCD not found!").GetBlock(0); 
         this.cal = Blocks.Named(calBlockName).FindOrFail("CAL Programmable block not found!").GetBlock(0); 
          
-        lcd.WritePrivateTitle(""); 
+        lcd.WritePublicTitle(""); 
          
         // Handle Arguments 
         On("Up", delegate() { 
