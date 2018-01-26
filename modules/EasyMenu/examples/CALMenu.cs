@@ -93,8 +93,12 @@ public class Example : EasyAPI
             this.menu.Back(); 
             this.inCAL = false; 
             doUpdates();            
-        }); 
-    }  
+        });
+		
+        Every(100 * EasyAPI.Milliseconds, delegate () {
+          doUpdates();
+        });
+	}  
      
     public void doUpdates() 
     {        
