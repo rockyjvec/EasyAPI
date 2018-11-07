@@ -1412,7 +1412,7 @@ public struct EasyItem
 
     public String Type(int dummy = 0)
     {
-        return this.Item.Content.SubtypeName;
+        return this.Item.Content.SubtypeId.ToString();
     }
 
     public VRage.MyFixedPoint Amount()
